@@ -1,0 +1,69 @@
+#ifndef GROUP_H
+#define GROUP_H
+
+#include <iostream>
+#include <list>
+#include <utility>
+#include "Eigen/Dense"
+
+using namespace std;
+
+typedef Eigen::VectorXd Node;
+typedef pair<Node , double> OneNode;
+
+
+class GROUP
+{
+	private:
+		Node mean;
+		double sum;		
+		double sum2;
+		double min;
+		double getMean();
+		double getVariance();
+	public:
+
+		int length;
+		list<OneNode> nodes;
+		double max;
+		int AllUsedNumber;
+		int LastModifiedFE;
+		
+		double evaluate(Node n , int len);		
+		void clear();	
+		void update_mean();
+		double calculateUCB(int total);
+		double getmax();
+		double getmin();
+		Node get_mean_vector()
+		{
+			update_mean();
+			return mean;
+		}
+
+		GROUP()
+		{
+			AllUsedNumber = 0 ;
+			sum = 0.0;
+			sum2 = 0.0;
+			max = 0.0;
+			LastModifiedFE = 0;
+		}
+		GROUP(int dim)
+		{
+			length = dim;
+			AllUsedNumber = 0;
+			sum = 0.0;
+			sum2 = 0.0;
+			max = 0.0;
+		}
+		
+		int getAllUsedNumber()
+		{
+			return AllUsedNumber;
+		}
+		void push(Node n , int curFE);
+};
+
+
+#endif

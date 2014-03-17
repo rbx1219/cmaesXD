@@ -1,0 +1,29 @@
+#
+# Sample parameter file.
+# Don't change the order of the lines in this file.
+#
+BEGIN
+chromosome_length              5
+seed                           239069050
+population_size                250
+probability_crossover          1
+split_rate                     0.45
+decrease_rate                  0.988
+max_model                      5
+tournament_size                8
+learn_MPM                      on
+stop_criteria                  max_generations
+stop_criteria_argument         999
+#
+# reporting flags
+#
+report_err                     on
+report_pop                     off
+report_string                  on
+report_fitness                 on
+report_MPM                     on
+up_bound                       5.12
+low_bound                      -5.12
+ans                            260.000000
+num_fun                        25
+END

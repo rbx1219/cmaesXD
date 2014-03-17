@@ -1,0 +1,172 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{080F0946-2B6B-4F17-98DF-72DC864479E8}</ProjectGuid>
+    <RootNamespace>rECGA</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ExecutablePath>C:\Program Files %28x86%29\GnuWin32\bin;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\Program Files %28x86%29\GnuWin32\include;C:\Program Files %28x86%29\GnuWin32\include\gsl;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LibraryPath>C:\Program Files %28x86%29\GnuWin32\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ExecutablePath>C:\libgsl-1.8\bin;$(ExecutablePath)</ExecutablePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\libgsl-1.8\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LibraryPath>C:\libgsl-1.8\lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalOptions>-lgsl -lgslcblas -lm </AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalOptions>/lgsl /lm </AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>libgsl_d.lib;libgslcblas_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="benchmark.h" />
+    <ClInclude Include="cache.hpp" />
+    <ClInclude Include="chromosome.hpp" />
+    <ClInclude Include="codetable.h" />
+    <ClInclude Include="ecga.hpp" />
+    <ClInclude Include="elem.h" />
+    <ClInclude Include="F01_shifted_sphere.h" />
+    <ClInclude Include="F02_shifted_schwefel.h" />
+    <ClInclude Include="F03_shifted_rotated_high_cond_elliptic.h" />
+    <ClInclude Include="F04_shifted_schwefel_noise.h" />
+    <ClInclude Include="F05_schwefel_global_opt_bound.h" />
+    <ClInclude Include="F06_shifted_rosenbrock.h" />
+    <ClInclude Include="F07_shifted_rotated_griewank.h" />
+    <ClInclude Include="F08_shifted_rotated_ackley_global_opt_bound.h" />
+    <ClInclude Include="F09_shifted_rastrigin.h" />
+    <ClInclude Include="F10_shifted_rotated_rastrigin.h" />
+    <ClInclude Include="F11_shifted_rotated_weierstrass.h" />
+    <ClInclude Include="F12_schwefel.h" />
+    <ClInclude Include="F13_shifted_expanded_griewank_rosenbrock.h" />
+    <ClInclude Include="F14_shifted_rotated_expanded_scaffer.h" />
+    <ClInclude Include="F15_hybrid_composition_1.h" />
+    <ClInclude Include="F16_rotated_hybrid_composition_1.h" />
+    <ClInclude Include="F17_rotated_hybrid_composition_1_noise.h" />
+    <ClInclude Include="F18_rotated_hybrid_composition_2.h" />
+    <ClInclude Include="F19_rotated_hybrid_composition_2_narrow_basin_global_opt.h" />
+    <ClInclude Include="F20_rotated_hybrid_composition_2_global_opt_bound.h" />
+    <ClInclude Include="F21_rotated_hybrid_composition_3.h" />
+    <ClInclude Include="F22_rotated_hybrid_composition_3_high_cond_num_matrix.h" />
+    <ClInclude Include="F23_noncontinuous_rotated_hybrid_composition_3.h" />
+    <ClInclude Include="F24_rotated_hybrid_composition_4.h" />
+    <ClInclude Include="F25_rotated_hybrid_composition_4_bound.h" />
+    <ClInclude Include="F26_8_peaks1.h" />
+    <ClInclude Include="F27_8_peaks2.h" />
+    <ClInclude Include="gene.hpp" />
+    <ClInclude Include="HCJob.h" />
+    <ClInclude Include="mpm.hpp" />
+    <ClInclude Include="objfunc.hpp" />
+    <ClInclude Include="parameter.hpp" />
+    <ClInclude Include="population.hpp" />
+    <ClInclude Include="random.hpp" />
+    <ClInclude Include="subset.hpp" />
+    <ClInclude Include="test_func.h" />
+    <ClInclude Include="utility.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="benchmark.cpp" />
+    <ClCompile Include="cache.cpp" />
+    <ClCompile Include="chromosome.cpp" />
+    <ClCompile Include="codetable.cpp" />
+    <ClCompile Include="ecga.cpp" />
+    <ClCompile Include="F01_shifted_sphere.cpp" />
+    <ClCompile Include="F02_shifted_schwefel.cpp" />
+    <ClCompile Include="F03_shifted_rotated_high_cond_elliptic.cpp" />
+    <ClCompile Include="F04_shifted_schwefel_noise.cpp" />
+    <ClCompile Include="F05_schwefel_global_opt_bound.cpp" />
+    <ClCompile Include="F06_shifted_rosenbrock.cpp" />
+    <ClCompile Include="F07_shifted_rotated_griewank.cpp" />
+    <ClCompile Include="F08_shifted_rotated_ackley_global_opt_bound.cpp" />
+    <ClCompile Include="F09_shifted_rastrigin.cpp" />
+    <ClCompile Include="F10_shifted_rotated_rastrigin.cpp" />
+    <ClCompile Include="F11_shifted_rotated_weierstrass.cpp" />
+    <ClCompile Include="F12_schwefel.cpp" />
+    <ClCompile Include="F13_shifted_expanded_griewank_rosenbrock.cpp" />
+    <ClCompile Include="F14_shifted_rotated_expanded_scaffer.cpp" />
+    <ClCompile Include="F15_hybrid_composition_1.cpp" />
+    <ClCompile Include="F16_rotated_hybrid_composition_1.cpp" />
+    <ClCompile Include="F17_rotated_hybrid_composition_1_noise.cpp" />
+    <ClCompile Include="F18_rotated_hybrid_composition_2.cpp" />
+    <ClCompile Include="F19_rotated_hybrid_composition_2_narrow_basin_global_opt.cpp" />
+    <ClCompile Include="F20_rotated_hybrid_composition_2_global_opt_bound.cpp" />
+    <ClCompile Include="F21_rotated_hybrid_composition_3.cpp" />
+    <ClCompile Include="F22_rotated_hybrid_composition_3_high_cond_num_matrix.cpp" />
+    <ClCompile Include="F23_noncontinuous_rotated_hybrid_composition_3.cpp" />
+    <ClCompile Include="F24_rotated_hybrid_composition_4.cpp" />
+    <ClCompile Include="F25_rotated_hybrid_composition_4_bound.cpp" />
+    <ClCompile Include="F26_8_peaks1.cpp" />
+    <ClCompile Include="F27_8_peaks2.cpp" />
+    <ClCompile Include="gene.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="mpm.cpp" />
+    <ClCompile Include="objfunc.cpp" />
+    <ClCompile Include="population.cpp" />
+    <ClCompile Include="random.cpp" />
+    <ClCompile Include="subset.cpp" />
+    <ClCompile Include="utility.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
