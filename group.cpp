@@ -9,12 +9,13 @@ double ucbtuned1();
 
 void GROUP::update_mean()
 {
-    Node tmp;
-    tmp.setZero(length);
-    for(list<OneNode>::iterator i = nodes.begin() ; i != nodes.end() ; ++i)
-	tmp = tmp + (*i).first;
+    Node tmp(length);
+    for(list<Node>::iterator i = nodes.begin() ; i != nodes.end() ; ++i)
+	tmp.allele = tmp.allele + (*i).allele;
     //    cout << tmp << endl <<" / " << nodes.size() << endl;
-    mean = tmp / nodes.size();
+    mean.allele = tmp.allele / nodes.size();
+    mean.fitness = evaluate(mean , length);
+    mean.isEvaluated = true;
 }
 
 double GROUP::calculateUCB(int total)
@@ -29,35 +30,20 @@ double GROUP::calculateUCB(int total)
     else
 	newMean = (getMean() - min ) / (max - min);
     double tmp = newMean - sqrt(log(total) / AllUsedNumber *V);
-    if(tmp != tmp)
-    {
-	printf("%lf / %d is the mean and %lf \n" , sum , AllUsedNumber , tmp);
-    	printf("%lf %lf %d %lf %lf \n" , getVariance() , getmin() , total , getmax() , v);
-    }
     return tmp;
 }
 
 void GROUP::push(Node n , int curFE)
 {
-    OneNode tmp;
-    double nFit = evaluate(n , length);
+    Node tmp(length);
     LastModifiedFE = curFE;
-    tmp.first = n;
-    tmp.second = nFit;
+    tmp.allele = n.allele;
+    tmp.fitness = n.fitness;
+    tmp.isEvaluated = true;
     nodes.push_back(tmp);
 
-    sum += nFit;
-    if(sum != sum)
-    {
-	list<OneNode>::iterator iter = nodes.begin();
-	while(iter!= nodes.end())
-	    cout<< iter++->first << endl << endl;
-	
-	printf("what happend\n");
-	printf("nFit = %lf \n" , nFit);
-	exit(0);
-    }
-    sum2+= nFit * nFit;
+    sum += n.fitness;
+    sum2+= n.fitness * n.fitness;
 
     AllUsedNumber ++ ;
     update_mean();
@@ -68,7 +54,7 @@ void GROUP::push(Node n , int curFE)
 
 void GROUP::clear()
 {
-    list< pair<Node , double> >::iterator iter = nodes.begin();
+    list<Node>::iterator iter = nodes.begin();
     while( iter!=nodes.end()  )
 	nodes.erase(iter++);
     sum = 0.0;
@@ -82,7 +68,7 @@ double GROUP::evaluate(Node n , int len)
     testFunc = testFunctionFactory( fun_num , len);
     double vec[len];
     for(int i = 0 ; i < len ; i++)
-	vec[i] = n(i);
+	vec[i] = n.allele(i);
     return testFunc->f(vec , len);
 }
 
@@ -100,20 +86,20 @@ double GROUP::getVariance()
 double GROUP::getmax()
 {
     double tmpMax = -999999;
-    list<OneNode>::iterator iter;
+    list<Node>::iterator iter;
     for(iter = nodes.begin() ; iter != nodes.end() ; ++iter)
-	if( (*iter).second > tmpMax)
-	    tmpMax = (*iter).second;
+	if( iter->fitness > tmpMax)
+	    tmpMax = iter->fitness;
     return tmpMax;
 }
 
 double GROUP::getmin()
 {
     double tmpMin = 9999999;
-    list<OneNode>::iterator iter;
+    list<Node>::iterator iter;
     for(iter = nodes.begin() ; iter != nodes.end() ; ++iter)
-	if( iter->second < tmpMin)
-	    tmpMin = iter->second;
+	if( iter->fitness < tmpMin)
+	    tmpMin = iter->fitness;
     return tmpMin;
 
 }

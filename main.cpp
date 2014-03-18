@@ -4,6 +4,7 @@
 #include "cmaes.h"
 #include "Eigen/Dense"
 #include "group.h"
+#include "node.h"
 #include <utility>
 #include "global.h"
 
@@ -15,7 +16,6 @@
 const int num_groups = 20;
 int fe = PopSize;
 
-typedef Eigen::VectorXd Node;
 
 bool shouldTerminate(int n)
 {
@@ -26,7 +26,7 @@ double square_of_distance(Node a , Node b)
 {
     double result = 0.0;
     for(int i = 0 ; i < dimension ; i++)
-	result += (a(i)-b(i)) * (a(i)-b(i));	
+	result += (a.allele(i)-b.allele(i)) * (a.allele(i)-b.allele(i));	
     return result;
 }
 
@@ -45,12 +45,12 @@ void pull(GROUP *groups , int stage )
     minX = 0;
     min=groups[0].calculateUCB(fe);
     int i;
-        //printf("\n\ngroup[ 0].UCBVALUE = %lf\n" , min);
+    //printf("\n\ngroup[ 0].UCBVALUE = %lf\n" , min);
     for(i = 1; i < num_groups ; i++)
     {
 
 	double tmp = groups[i].calculateUCB(fe);
-	//	printf("group[%2d].UCBVALUE = %lf\n" , i , tmp);
+//	printf("group[%2d].UCBVALUE = %lf\n" , i , tmp);
 	if(tmp <min)
 	{
 	    minX = i;
@@ -61,12 +61,11 @@ void pull(GROUP *groups , int stage )
 
     /*2. CMAES in best UCB group*/
     Node *temp_pop = new Node[ groups[minX].nodes.size() ];
-    list< pair<Node , double> >::iterator iter = groups[minX].nodes.begin();
-    for(i = 0 ; i < groups[minX].nodes.size() ; i++)
-    {
-	temp_pop[i] = iter->first;
-	iter++;
-    }
+
+    list< Node >::iterator iter = groups[minX].nodes.begin();
+    for(i = 0 ; i < groups[minX].nodes.size() ; i++ , iter++)
+	temp_pop[i] = *iter;
+    
     CMAES es(groups[minX].nodes.size() , 1 , dimension , temp_pop);
     es.run();
     Node temp_node(dimension);
@@ -77,17 +76,16 @@ void pull(GROUP *groups , int stage )
     /*3. if stage == 0 replace the worst node with the new one*/
     if(stage == 0)
 	for(iter = groups[minX].nodes.begin() ; iter != groups[minX].nodes.end() ; ++iter)
-	    if( (*iter).second == groups[minX].getmax() )
+	    if( iter->fitness == groups[minX].getmax() )
 	    {
 		groups[minX].nodes.erase(iter++);
 		break;
 	    }
-    if(stage == 1)
+/*    if(stage == 1)
     {
 	printf("in updating now choosing %d : size %d \n" , minX , groups[minX].nodes.size());
-    	cout << temp_node << endl << es.evaluate(temp_node) <<  endl;
-    }
-	
+    }*/
+
     groups[minX].push(temp_node , fe++);
     /*end of 3*/	
 
@@ -147,11 +145,13 @@ int main(int argc , char **argv)
 {
     Node *central = new Node[num_groups];
     Node *population = new Node[PopSize];
-    int clusteringCategory[PopSize] = {0};
+
     MyRand rand;
-    int *uniarray = new int[PopSize];
-    bool SwapFlag = true;
+
     GROUP groups[num_groups];
+
+    bool SwapFlag = true;
+    int clusteringCategory[PopSize] = {0};
     int generation = 0;
 
     fun_num = atoi(argv[1]);
@@ -162,11 +162,14 @@ int main(int argc , char **argv)
     /*initial pop */
     for(int i = 0 ; i < PopSize ; i++)
     {
-	population[i].setZero(dimension);
+	population[i].length = dimension;
+	population[i].allele.setZero(dimension);
 	for(int j = 0 ; j < dimension ; j++)
-	    population[i](j) = rand.uniform(lowerbound , upperbound);
+	    population[i].allele(j) = rand.uniform(lowerbound , upperbound);
+	population[i].setFitness(groups[0].evaluate( population[i] , dimension) );    	
     }
     /*K-MEANS below*/
+    int *uniarray = new int[PopSize];
     rand.uniformArray(uniarray , PopSize , 0 , PopSize-1);
 
     for(int i = 0 ; i < num_groups ; i++)
@@ -198,16 +201,15 @@ int main(int argc , char **argv)
 	/*updating central*/
 	for(int j = 0 ; j < num_groups ; j++)
 	{
-	    Node tmp;
-	    tmp.setZero(dimension);
+	    Node tmp(dimension);
 	    int count = 0;
 	    for(int i = 0 ; i < PopSize ; i++)
 		if(clusteringCategory[i] == j)
 		{
 		    count++;
-		    tmp = tmp + population[i];
+		    tmp.allele = tmp.allele + population[i].allele;
 		}
-	    central[j] = tmp / count;
+	    central[j].allele = tmp.allele / count;
 	}
 
 

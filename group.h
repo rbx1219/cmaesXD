@@ -5,11 +5,10 @@
 #include <list>
 #include <utility>
 #include "Eigen/Dense"
+#include "node.h"
 
 using namespace std;
 
-typedef Eigen::VectorXd Node;
-typedef pair<Node , double> OneNode;
 
 
 class GROUP
@@ -24,7 +23,7 @@ class GROUP
 	public:
 
 		int length;
-		list<OneNode> nodes;
+		list<Node> nodes;
 		double max;
 		int AllUsedNumber;
 		int LastModifiedFE;
