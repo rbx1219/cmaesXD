@@ -103,3 +103,22 @@ double GROUP::getmin()
     return tmpMin;
 
 }
+
+Node GROUP::get_best_vector()
+{
+	double max = nodes.begin()->fitness;
+	list<Node>::iterator iter = nodes.begin();
+	Node best(length) ;
+	 best = *iter;
+	for( ; iter != nodes.end() ; ++iter)
+	{
+		if(iter->fitness < max)
+		{
+			max = iter->fitness;
+			best = *iter;
+		}
+	}
+	best.fitness = max;
+	best.isEvaluated = true;
+	return best ;
+}

@@ -119,7 +119,8 @@ void updateGroups(GROUP *groups)
 	{
 	    if(i == candidate)
 		continue;
-	    temp_pop[count++] = groups[i].get_mean_vector();
+	    cout << groups[i].get_best_vector().fitness << endl;
+	    temp_pop[count++] = groups[i].get_best_vector();
 	}
 	CMAES es(num_groups -1, 1 , dimension , temp_pop);
 	es.run();
@@ -130,7 +131,7 @@ void updateGroups(GROUP *groups)
 	int remain = groups[candidate].nodes.size() -1;
 	groups[candidate].clear();
 	groups[candidate].push(temp_node , fe++);
-	printf("from %d remain %d \n" , candidate , remain);
+	printf("from %d remain %d curNFE = %d\n" , candidate , remain,nfe);
 	for(int i = 0 ; i < remain ; i++)
 	    pull(groups , 1); //stage 1 doesn't erase Nodes
 	/*end of 3*/

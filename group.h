@@ -39,6 +39,7 @@ class GROUP
 			update_mean();
 			return mean;
 		}
+		Node get_best_vector();
 
 		GROUP()
 		{
