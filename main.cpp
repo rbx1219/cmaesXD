@@ -155,8 +155,8 @@ int main(int argc , char **argv)
     int clusteringCategory[PopSize] = {0};
     int generation = 0;
 
-    fun_num = atoi(argv[1]);
-
+    funATT = atoi(argv[1]);
+	cout << funATT << " in main " << endl;
     for(int i = 0 ; i < num_groups ; i++)
 	groups[i].length = dimension;
 

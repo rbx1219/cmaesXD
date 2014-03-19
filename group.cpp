@@ -64,9 +64,9 @@ void GROUP::clear()
 double GROUP::evaluate(Node n , int len)
 {
     initial();
-    extern int fun_num;
-    cout << "fun_num" << fun_num << endl;
-    testFunc = testFunctionFactory( fun_num , len);
+    extern int funATT;
+    cout << "funATT" << funATT << endl;
+    testFunc = testFunctionFactory( funATT , len);
     double vec[len];
     for(int i = 0 ; i < len ; i++)
 	vec[i] = n.allele(i);

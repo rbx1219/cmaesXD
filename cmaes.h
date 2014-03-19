@@ -62,7 +62,7 @@ class CMAES
 	    covar.setIdentity(dimension , dimension);
 	    mean.allele = calculateMean(population , mu);
 	    bestNode = findingbest();
-	    testFunc = testFunctionFactory(fun_num,dimension);
+	    testFunc = testFunctionFactory(funATT,dimension);
 	    initial();
 	}
 
@@ -96,7 +96,7 @@ class CMAES
 		
 		if(generation == 50)
 		{
-		    if(population[0].fitness < best[fun_num-1] * 0.99999)
+		    if(population[0].fitness < best[funATT-1] * 0.99999)
 		    {
 			cout << nfe << endl;
 			exit(0);
