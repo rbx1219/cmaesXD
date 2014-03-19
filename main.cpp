@@ -19,7 +19,7 @@ int fe = PopSize;
 
 bool shouldTerminate(int n)
 {
-    return (fe == 100000);	
+    return (nfe == 100000);	
 }
 
 double square_of_distance(Node a , Node b)
@@ -50,7 +50,7 @@ void pull(GROUP *groups , int stage )
     {
 
 	double tmp = groups[i].calculateUCB(fe);
-//	printf("group[%2d].UCBVALUE = %lf\n" , i , tmp);
+	//	printf("group[%2d].UCBVALUE = %lf\n" , i , tmp);
 	if(tmp <min)
 	{
 	    minX = i;
@@ -65,7 +65,7 @@ void pull(GROUP *groups , int stage )
     list< Node >::iterator iter = groups[minX].nodes.begin();
     for(i = 0 ; i < groups[minX].nodes.size() ; i++ , iter++)
 	temp_pop[i] = *iter;
-    
+
     CMAES es(groups[minX].nodes.size() , 1 , dimension , temp_pop);
     es.run();
     Node temp_node(dimension);
@@ -81,10 +81,10 @@ void pull(GROUP *groups , int stage )
 		groups[minX].nodes.erase(iter++);
 		break;
 	    }
-/*    if(stage == 1)
-    {
-	printf("in updating now choosing %d : size %d \n" , minX , groups[minX].nodes.size());
-    }*/
+    /*    if(stage == 1)
+	  {
+	  printf("in updating now choosing %d : size %d \n" , minX , groups[minX].nodes.size());
+	  }*/
 
     groups[minX].push(temp_node , fe++);
     /*end of 3*/	
@@ -119,8 +119,8 @@ void updateGroups(GROUP *groups)
 	{
 	    if(i == candidate)
 		continue;
-	    cout << groups[i].get_best_vector().fitness << endl;
 	    temp_pop[count++] = groups[i].get_best_vector();
+	    printf("%2d : size %d\n" , i , groups[i].nodes.size());
 	}
 	CMAES es(num_groups -1, 1 , dimension , temp_pop);
 	es.run();
@@ -220,11 +220,24 @@ int main(int argc , char **argv)
 	groups[ clusteringCategory[i] ].push(population[i] , PopSize);
 
 
-    while(!shouldTerminate(generation ++))
-    {
-	pull(groups , 0);
-	updateGroups(groups);
+    /*    while(!shouldTerminate(generation ++))
+	  {
+	  pull(groups , 0);
+	  updateGroups(groups);
 
+	  }*/
+
+    CMAES::a.rng.seed(time(NULL));	
+    while(!shouldTerminate(generation++))
+    {
+	CMAES es(PopSize , 10 , dimension , population );
+	es.run();
+	Node best = es.generate();
+	cout << "best is " << best.allele << endl <<endl << best.fitness <<endl;
+	for(int i = 0 ; i < PopSize ; i++)
+	    cout << "here" << population[i].allele << endl << endl ;
+	if(generation == 1)
+	    exit(0);
     }
     return 0;
 }

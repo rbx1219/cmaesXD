@@ -51,7 +51,7 @@ double F03_shifted_rotated_high_cond_elliptic::f(double *x,int length) {
 
 	shift(m_z, x, m_o,length);
 	rotate(m_zM, m_z, m_matrix,length);
-
+	
 	double sum = 0.0;
 
 	for (int i = 0 ; i < m_dimension ; i ++) {

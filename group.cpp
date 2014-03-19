@@ -1,5 +1,4 @@
 #include "group.h"
-#include "global.h"
 #include "FHH/benchmark.h"
 #include "FHH/test_func.h"
 
@@ -65,6 +64,7 @@ void GROUP::clear()
 double GROUP::evaluate(Node n , int len)
 {
     initial();
+    cout << "fun_num" << fun_num << endl;
     testFunc = testFunctionFactory( fun_num , len);
     double vec[len];
     for(int i = 0 ; i < len ; i++)
