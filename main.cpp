@@ -230,14 +230,11 @@ int main(int argc , char **argv)
     CMAES::a.rng.seed(time(NULL));	
     while(!shouldTerminate(generation++))
     {
-	CMAES es(PopSize , 10 , dimension , population );
+	CMAES es(PopSize , 1 , dimension , population );
 	es.run();
 	Node best = es.generate();
-	cout << "best is " << best.allele << endl <<endl << best.fitness <<endl;
-	for(int i = 0 ; i < PopSize ; i++)
-	    cout << "here" << population[i].allele << endl << endl ;
-	if(generation == 1)
-	    exit(0);
+	cout << "best is " << best.allele << endl <<endl ;
+	printf("%.6lf\n" , best.fitness);
     }
     return 0;
 }

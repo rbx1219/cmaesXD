@@ -6,7 +6,6 @@
 #include <utility>
 #include "Eigen/Dense"
 #include "node.h"
-#include "global.h"
 
 using namespace std;
 

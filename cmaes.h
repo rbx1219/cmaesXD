@@ -46,7 +46,7 @@ class CMAES
 	Node mean;
 	Node bestNode;
 	Eigen::MatrixXd covar;
-        static Eigen::internal::scalar_normal_dist_op<double> a;
+	static Eigen::internal::scalar_normal_dist_op<double> a;
 
 	CMAES(int parent , int child , int dim , Node *refPopulation)
 	{
@@ -93,14 +93,14 @@ class CMAES
 		/*for(int i = 0 ; i < mu ; i++)
 		  cout << population[i] << endl <<endl << endl;
 		  cout << "mean : "<< mean << endl << endl;*/
-		
+
 		if(generation == 50)
 		{
-		    if(population[0].fitness < best[funATT-1] * 0.99999)
+		    if(abs(population[0].fitness - best[funATT-1]) < 0.00001)
 		    {
 			cout << nfe << endl;
-			exit(0);
 			shouldTerminate = true;
+		    	exit(0);
 		    }
 		    shouldTerminate = true;
 		}
@@ -132,15 +132,15 @@ class CMAES
 	    zero.setZero(dimension);
 	    int count = 0;
 	    int curcount = 0;
-	    cout << "sigma : " << sigma << endl;
+//	    cout << "sigma : " << sigma << endl;
 	    while(count != lambda)
 	    {
 		Eigen::MatrixXd sample = getMVN(zero , covar);
-	//	Eigen::VectorXd tmp = mean.allele + sigma * sample;
+	//		Eigen::VectorXd tmp = mean.allele + sigma * sample;
 		Eigen::VectorXd tmp = bestNode.allele + sigma * sample;
-		cout << " sampleFrom "<< bestNode.allele << endl << bestNode.fitness << endl << endl;
+	//	cout << " sampleFrom "<< bestNode.allele << endl << bestNode.fitness << endl << endl;
 		//	cout << sample << endl  << endl;
-	//	cout << tmp << endl << endl;
+		//	cout << tmp << endl << endl;
 		if(isFeasible(tmp))
 		{
 		    offspring[count].length = dimension;
@@ -169,9 +169,9 @@ class CMAES
 		EvaluationResult[i] = evaluate(&offspring[i]);
 		if(EvaluationResult[i] < evaluate(&population[0]) && i <lambda)
 		    successfulCount = successfulCount + 1;
-		cout << "Evaluation result " << i << "is " << EvaluationResult[i] << " , ";
+//		cout << "Evaluation result " << i << "is " << EvaluationResult[i] << " , ";
 	    }
-	    cout << endl;
+	    //cout << endl;
 	    for(int i = 0 ; i < mu ; i++)
 	    {
 		for(int j = i+1 ; j < lambda+mu ; j++)	
@@ -183,7 +183,7 @@ class CMAES
 		    }
 		y[i] = (offspring[i].allele-mean.allele) / sigma;
 	    }
-	    cout << "successfulCount : " << successfulCount << endl ;
+//	    cout << "successfulCount : " << successfulCount << endl ;
 	    sigma = sigma*exp( (1.0/3) * (successfulCount/lambda-1.0/5) / 0.8 );
 	    delete[] EvaluationResult;
 	}
@@ -214,7 +214,10 @@ class CMAES
 	    if(isFeasible(population[0].allele))
 		return population[0];
 	    else
+	    {
+		cout << "not feasible "<<endl;
 		exit(0);		
+	    }
 	}
 	bool isFeasible(Eigen::VectorXd sample)
 	{
@@ -235,17 +238,17 @@ class CMAES
 
 	Node findingbest()
 	{
-		Node tmp(dimension);
-	    	int minx = 0;
-		int min = evaluate(&population[0]);
-		for(int i = 0 ; i < mu ; i++)
-		    if(evaluate(&population[i]) < min)
-		    {
-		    	min = evaluate(&population[i]);
-			minx = i;
-		    }
-		tmp = population[minx];
-		return tmp;
+	    Node tmp(dimension);
+	    int minx = 0;
+	    int min = evaluate(&population[0]);
+	    for(int i = 0 ; i < mu ; i++)
+		if(evaluate(&population[i]) < min)
+		{
+		    min = evaluate(&population[i]);
+		    minx = i;
+		}
+	    tmp = population[minx];
+	    return tmp;
 	}
 
 	Eigen::MatrixXd getMVN(Eigen::VectorXd mean , Eigen::MatrixXd covar) 
