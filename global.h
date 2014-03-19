@@ -2,7 +2,7 @@
 #define GLOBAL_H
 
 
-static int fun_num;
+int fun_num;
 static double best[25] = {
           -450.0 
         , -450.0 
