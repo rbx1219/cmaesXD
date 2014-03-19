@@ -234,6 +234,7 @@ int main(int argc , char **argv)
 	Node best = es.generate();
 	cout << "best is " << best.allele << endl <<endl ;
 	printf("%.6lf\n" , best.fitness);
+    	fgetc(stdin);
     }
     return 0;
 }

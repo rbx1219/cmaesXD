@@ -82,13 +82,12 @@ class CMAES
 		offspring = new Node[lambda+mu];
 
 		Sample(offspring);
-
 		for(int i = 0 ; i < mu ; i++)
 		    offspring[lambda + i ] = population[i];
 
 		sort_offspring_update_sigma(offspring , y);
 
-//		cout << " sigma : " << sigma << endl;
+		cout << " sigma : " << sigma << endl;
 
 		update_mean(offspring);	
 
@@ -103,15 +102,17 @@ class CMAES
 		  cout << population[i] << endl <<endl << endl;
 		  cout << "mean : "<< mean << endl << endl;*/
 
-		if(abs(bestNode.fitness - best[funATT-1]) < 0.001)
+		if(abs(bestNode.fitness - best[funATT-1]) < 0.00001)
 		{
 		    cout << nfe << endl << bestNode.allele << endl << bestNode.fitness << endl ;
 		    shouldTerminate = true;
 		    exit(0);
 		}
-		if(generation == 50)
+		if(nfe % 1000 == 0)
 		{
-		    shouldTerminate = true;
+		    cout << nfe << endl << bestNode.allele << endl << bestNode.fitness << endl ;
+		    fgetc(stdin);
+		    //shouldTerminate = true;
 		}
 	    }
 	    delete[] y ;
@@ -139,7 +140,7 @@ class CMAES
 	    zero.setZero(dimension);
 	    int count = 0;
 	    int curcount = 0;
-	    while(count != lambda)
+	    while(count != lambda )
 	    {
 		Eigen::MatrixXd sample = getMVN(zero , covar);
 		//		Eigen::VectorXd tmp = mean.allele + sigma * sample;
