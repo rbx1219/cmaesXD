@@ -65,7 +65,6 @@ double GROUP::evaluate(Node n , int len)
 {
     initial();
     extern int funATT;
-    cout << "funATT" << funATT << endl;
     testFunc = testFunctionFactory( funATT , len);
     double vec[len];
     for(int i = 0 ; i < len ; i++)

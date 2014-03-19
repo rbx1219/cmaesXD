@@ -219,15 +219,14 @@ int main(int argc , char **argv)
     for(int i = 0 ; i < PopSize ; i++)
 	groups[ clusteringCategory[i] ].push(population[i] , PopSize);
 
-
-    /*    while(!shouldTerminate(generation ++))
+    CMAES::a.rng.seed(time(NULL));	
+/*
+        while(!shouldTerminate(generation ++))
 	  {
 	  pull(groups , 0);
 	  updateGroups(groups);
 
 	  }*/
-
-    CMAES::a.rng.seed(time(NULL));	
     while(!shouldTerminate(generation++))
     {
 	CMAES es(PopSize , 1 , dimension , population );

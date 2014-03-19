@@ -72,6 +72,7 @@ class CMAES
 	    int generation = 0;
 	    Eigen::VectorXd *y = new Eigen::VectorXd[mu];
 	    Node *offspring = new Node[lambda+mu];
+
 	    while(!shouldTerminate)
 	    {
 		delete[] y;
@@ -79,14 +80,22 @@ class CMAES
 
 		y = new Eigen::VectorXd[mu];
 		offspring = new Node[lambda+mu];
+
 		Sample(offspring);
+
 		for(int i = 0 ; i < mu ; i++)
 		    offspring[lambda + i ] = population[i];
 
 		sort_offspring_update_sigma(offspring , y);
+
+//		cout << " sigma : " << sigma << endl;
+
 		update_mean(offspring);	
+
 		update_covar(y);
+
 		generation++;
+
 		for(int i = 0 ; i < mu ; i++)
 		    population[i] = offspring[i];
 		bestNode = population[0];
@@ -94,18 +103,16 @@ class CMAES
 		  cout << population[i] << endl <<endl << endl;
 		  cout << "mean : "<< mean << endl << endl;*/
 
+		if(abs(bestNode.fitness - best[funATT-1]) < 0.001)
+		{
+		    cout << nfe << endl << bestNode.allele << endl << bestNode.fitness << endl ;
+		    shouldTerminate = true;
+		    exit(0);
+		}
 		if(generation == 50)
 		{
-		    if(abs(population[0].fitness - best[funATT-1]) < 0.00001)
-		    {
-			cout << nfe << endl;
-			shouldTerminate = true;
-		    	exit(0);
-		    }
 		    shouldTerminate = true;
 		}
-		//if(generation == 1000 )
-		//    shouldTerminate = true;
 	    }
 	    delete[] y ;
 	    delete[] offspring;
@@ -132,15 +139,11 @@ class CMAES
 	    zero.setZero(dimension);
 	    int count = 0;
 	    int curcount = 0;
-//	    cout << "sigma : " << sigma << endl;
 	    while(count != lambda)
 	    {
 		Eigen::MatrixXd sample = getMVN(zero , covar);
-	//		Eigen::VectorXd tmp = mean.allele + sigma * sample;
+		//		Eigen::VectorXd tmp = mean.allele + sigma * sample;
 		Eigen::VectorXd tmp = bestNode.allele + sigma * sample;
-	//	cout << " sampleFrom "<< bestNode.allele << endl << bestNode.fitness << endl << endl;
-		//	cout << sample << endl  << endl;
-		//	cout << tmp << endl << endl;
 		if(isFeasible(tmp))
 		{
 		    offspring[count].length = dimension;
@@ -163,15 +166,14 @@ class CMAES
 	{
 	    double *EvaluationResult = new double[lambda+mu];
 	    double meanEvalResult = evaluate(&mean);
+	    double bestEvalResult = evaluate(&bestNode);	
 	    float successfulCount = 0;
 	    for(int i = 0 ; i < lambda + mu ; i++)
 	    {
 		EvaluationResult[i] = evaluate(&offspring[i]);
-		if(EvaluationResult[i] < evaluate(&population[0]) && i <lambda)
+		if(EvaluationResult[i] < bestEvalResult  && i <lambda)
 		    successfulCount = successfulCount + 1;
-//		cout << "Evaluation result " << i << "is " << EvaluationResult[i] << " , ";
 	    }
-	    //cout << endl;
 	    for(int i = 0 ; i < mu ; i++)
 	    {
 		for(int j = i+1 ; j < lambda+mu ; j++)	
@@ -181,9 +183,8 @@ class CMAES
 			offspring[i] = offspring[j];
 			offspring[j] = tmp;
 		    }
-		y[i] = (offspring[i].allele-mean.allele) / sigma;
+		y[i] = (offspring[i].allele-bestNode.allele) / sigma;
 	    }
-//	    cout << "successfulCount : " << successfulCount << endl ;
 	    sigma = sigma*exp( (1.0/3) * (successfulCount/lambda-1.0/5) / 0.8 );
 	    delete[] EvaluationResult;
 	}
@@ -210,7 +211,6 @@ class CMAES
 	}
 	Node generate()
 	{
-	    //	    cout << evaluate(population[0]) << endl << population[0] << endl <<endl;
 	    if(isFeasible(population[0].allele))
 		return population[0];
 	    else

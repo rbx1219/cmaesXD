@@ -9,6 +9,7 @@ static double best[25] = {
 	, -450.0 
 	, -450.0
 	, -310.0
+	,  390.0
 };
 
 static int nfe = 0;
