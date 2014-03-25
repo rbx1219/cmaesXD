@@ -10,8 +10,8 @@
 
 #define dimension 10
 #define PopSize 400
-#define upperbound 100
-#define lowerbound -100
+double upperbound ;
+double lowerbound ;
 
 const int num_groups = 20;
 int fe = PopSize;
@@ -66,10 +66,12 @@ void pull(GROUP *groups , int stage )
     for(i = 0 ; i < groups[minX].nodes.size() ; i++ , iter++)
 	temp_pop[i] = *iter;
 
-    CMAES es(groups[minX].nodes.size() , 1 , dimension , temp_pop);
+    CMAES es(groups[minX].nodes.size() , 1 , dimension , temp_pop , &(groups[minX].sigma) , &(groups[minX].covar));
     es.run();
     Node temp_node(dimension);
     temp_node=es.generate();
+	cout << temp_node.allele << endl << endl;
+	printf("%.6lf\n" , temp_node.fitness);
     //cout << "generating" << endl << temp_node << endl << endl;	 
     /*end of 2*/
 
@@ -88,7 +90,6 @@ void pull(GROUP *groups , int stage )
 
     groups[minX].push(temp_node , fe++);
     /*end of 3*/	
-
     delete[] temp_pop;
 }
 
@@ -125,6 +126,9 @@ void updateGroups(GROUP *groups)
 	CMAES es(num_groups -1, 1 , dimension , temp_pop);
 	es.run();
 	Node temp_node = es.generate();
+	cout << temp_node.allele << endl << endl;
+	printf("%.6lf\n" , temp_node.fitness);
+
 	/*end of 2*/
 
 	/*3. clear the candidate group and fill up remain nodes*/
@@ -156,7 +160,7 @@ int main(int argc , char **argv)
     int generation = 0;
 
     funATT = atoi(argv[1]);
-	cout << funATT << " in main " << endl;
+    upperbound = domainupbound[funATT-1] , lowerbound = domainlowbound[funATT-1];
     for(int i = 0 ; i < num_groups ; i++)
 	groups[i].length = dimension;
 
@@ -219,23 +223,54 @@ int main(int argc , char **argv)
     for(int i = 0 ; i < PopSize ; i++)
 	groups[ clusteringCategory[i] ].push(population[i] , PopSize);
 
-    CMAES::a.rng.seed(time(NULL));	
-/*
-        while(!shouldTerminate(generation ++))
-	  {
-	  pull(groups , 0);
-	  updateGroups(groups);
+    for(int i = 0 ; i < num_groups ; i++)	
+	groups[i].covar.setIdentity(dimension , dimension);
 
-	  }*/
-    while(!shouldTerminate(generation++))
+    CMAES::a.rng.seed(time(NULL));	
+/*CMAES with UCB
+    while(!shouldTerminate(generation ++))
     {
-	CMAES es(PopSize , 1 , dimension , population );
-	es.run();
-	Node best = es.generate();
-	cout << "best is " << best.allele << endl <<endl ;
-	printf("%.6lf\n" , best.fitness);
-    	fgetc(stdin);
-    }
+	pull(groups , 0);
+	updateGroups(groups);
+
+    }*/
+     while(!shouldTerminate(generation++))
+     {
+     CMAES es(PopSize , atoi(argv[2]) , dimension , population );
+     es.run();
+     Node best = es.generate();
+     cout << "best is " << best.allele << endl <<endl ;
+     printf("%.6lf\n" , best.fitness);
+     }
+
+    /*  
+     *  double CMAES
+     *
+     *  while(!shouldTerminate(generation++))
+     {
+     Node *candidate_pop = new Node[num_groups];
+     for(int i = 0 ; i < num_groups ; i++)
+     {
+     Node *curPop = new Node[groups[i].nodes.size()];
+     int j = 0;
+     list<Node>::iterator iter = groups[i].nodes.begin();
+     while(iter != groups[i].nodes.end())
+     {
+     curPop[j] = *iter;
+     j++ , iter++;
+     }
+     CMAES es(groups[i].nodes.size() , 3 , dimension , curPop , &(groups[i].sigma) , &(groups[i].covar));
+     es.run();	
+     candidate_pop[ i ] = es.generate();
+     groups[i].replace_worst(candidate_pop[i]);
+     delete[] curPop;
+     }
+     CMAES outeres(num_groups , 10 , dimension , candidate_pop);
+     outeres.run();
+     cout << "outergenerates : " << outeres.generate().fitness << endl << endl;
+     delete[] candidate_pop;
+     }
+     */
     return 0;
 }
 

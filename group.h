@@ -27,6 +27,8 @@ class GROUP
 		double max;
 		int AllUsedNumber;
 		int LastModifiedFE;
+		double sigma;
+		Eigen::MatrixXd covar;
 		
 		double evaluate(Node n , int len);		
 		void clear();	
@@ -34,6 +36,9 @@ class GROUP
 		double calculateUCB(int total);
 		double getmax();
 		double getmin();
+		void replace_worst(Node a);
+
+
 		Node get_mean_vector()
 		{
 			update_mean();
@@ -48,6 +53,7 @@ class GROUP
 			sum2 = 0.0;
 			max = 0.0;
 			LastModifiedFE = 0;
+			sigma = 1;
 		}
 		GROUP(int dim)
 		{
@@ -56,6 +62,8 @@ class GROUP
 			sum = 0.0;
 			sum2 = 0.0;
 			max = 0.0;
+			sigma = 1;
+			covar.setIdentity(length , length);
 		}
 		
 		int getAllUsedNumber()

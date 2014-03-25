@@ -122,3 +122,12 @@ Node GROUP::get_best_vector()
 	best.isEvaluated = true;
 	return best ;
 }
+
+void GROUP::replace_worst(Node candidate)
+{
+	double max = getmax();
+	list<Node>::iterator iter = nodes.begin();
+	for( ; iter!= nodes.end() ; ++iter)
+		if(iter->fitness = max)
+			*iter = candidate;
+}
