@@ -66,7 +66,7 @@ void pull(GROUP *groups , int stage )
     for(i = 0 ; i < groups[minX].nodes.size() ; i++ , iter++)
 	temp_pop[i] = *iter;
 
-    CMAES es(groups[minX].nodes.size() , 1 , dimension , temp_pop , &(groups[minX].sigma) , &(groups[minX].covar));
+    CMAES es(groups[minX].nodes.size() , 1 , dimension , temp_pop );
     es.run();
     Node temp_node(dimension);
     temp_node=es.generate();
@@ -241,6 +241,7 @@ int main(int argc , char **argv)
      Node best = es.generate();
      cout << "best is " << best.allele << endl <<endl ;
      printf("%.6lf\n" , best.fitness);
+     exit(0);
      }
 
     /*  

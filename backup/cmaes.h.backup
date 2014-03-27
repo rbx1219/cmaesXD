@@ -1,5 +1,4 @@
 #include "Eigen/Dense"
-#include "Eigen/Eigenvalues"
 #include "boost/random/mersenne_twister.hpp"
 #include "boost/random/normal_distribution.hpp"    
 #include "FHH/benchmark.h"
@@ -10,7 +9,7 @@
 
 extern test_func * testFunc;
 
-using namespace Eigen;
+
 namespace Eigen {
     namespace internal {
 	template<typename Scalar> 
@@ -49,42 +48,64 @@ class CMAES
 	Node bestNode;
 	Eigen::MatrixXd covar;
 	Eigen::MatrixXd *refcovar = &covar;
-	Eigen::VectorXd pc , ps , yw;
-
+	Eigen::VectorXd pc , ps;
+	
 	static Eigen::internal::scalar_normal_dist_op<double> a;
 
 
+	CMAES(int parent , int child , int dim , Node *refPopulation , double * sig , Eigen::MatrixXd *cov)
+	{
+	    mu = parent;
+	    lambda = child;
+	    dimension = dim;
+	    mu_w = mu;
+	    population = refPopulation;
+	    sigma = *sig;
+	    cc = (double) 4.0 / mu;
+	    cs = (double) 4.0 / mu;
+	    c1 = (double) 2.0 / mu / mu;
+	    cmu = double(mu_w) / mu / mu;
+	    ds = 1 + sqrt(mu_w / mu);	
+	    mean.length = dimension;
+	    mean.allele.setZero();
+	    covar = *cov;
+	    mean.allele = calculateMean(population , mu);
+	    bestNode = findingbest();
+	    testFunc = testFunctionFactory(funATT,dimension);
+	    initial();
+	    refsigma = sig;
+	    refcovar = cov;
+	    pc.setZero(dimension);
+	    ps.setZero(dimension);
+	}
 
 	CMAES(int parent , int child , int dim , Node *refPopulation)
 	{
-	    mu = 0.5 * child;
+	    mu = parent;
 	    lambda = child;
 	    dimension = dim;
-	    mu_w = 0.3 * lambda;
+	    mu_w = mu;
 	    population = refPopulation;
-	    cc = (double) 4.0 / dimension;
-	    cs = (double) 4.0 / dimension;
-	    c1 = (double) 2.0 / dimension / dimension;
-	    cmu = double(mu_w) / dimension / dimension;
-	    ds = 1 + sqrt(mu_w / dimension);	
+	    cc = (double) 4.0 / mu;
+	    cs = (double) 4.0 / mu;
+	    c1 = (double) 2.0 / mu / mu;
+	    cmu = double(mu_w) / mu / mu;
+	    ds = 1 + sqrt(mu_w / mu);	
 	    mean.length = dimension;
 	    mean.allele.setZero();
-	    mean.allele = calculateMean(population , parent);
+	    mean.allele = calculateMean(population , mu);
 	    bestNode = findingbest();
 	    testFunc = testFunctionFactory(funATT,dimension);
 	    initial();
 	    pc.setZero(dimension);
 	    ps.setZero(dimension);
-	    yw.setZero(dimension);
-	    sigma = 1.0;
-	    covar.setIdentity(dimension , dimension);
 	}
 
 	void run()
 	{
 	    bool shouldTerminate = false;
 	    int generation = 0;
-	    Node *offspring = new Node[lambda];
+	    Node *offspring = new Node[lambda+mu];
 	    Eigen::VectorXd *y = new Eigen::VectorXd[mu];
 	    while(!shouldTerminate)
 	    {
@@ -92,15 +113,13 @@ class CMAES
 		delete[] offspring;
 
 		y = new Eigen::VectorXd[mu];
-		offspring = new Node[lambda];
-
+		offspring = new Node[lambda+mu];
+		
 		Sample(offspring);
+		for(int i = 0 ; i < mu ; i++)
+		    offspring[lambda + i ] = population[i];
 
 		sort_offspring(offspring , y);
-		yw.setZero(dimension);
-		for(int i = 0 ; i < mu ; i++)
-		    yw = yw + y[i];
-		yw = yw / mu;
 
 		update_mean(offspring);
 
@@ -108,73 +127,65 @@ class CMAES
 		update_ps();
 		update_covar(y);
 		update_sigma();
-		//cout << covar <<  endl << endl << "================ " << sigma << endl;
-		//		printf("cc : %lf cs : %lf cmu : %lf c1 : %lf ds : %lf\n" , cc , cs, cmu , c1 , ds);
-		bestNode = offspring[0];
-		if(abs(offspring[0].fitness - best[funATT-1]) < 0.0000001)
-		{
-		    printf("%.9lf %d\n",offspring[0].fitness , nfe);
-			shouldTerminate = true;
-	 	 			
-		}
+
 	    }
 	}
 	/*void run()
-	  {
-	  bool shouldTerminate = false;
-	  int generation = 0;
-	  Eigen::VectorXd *y = new Eigen::VectorXd[mu];
-	  Node *offspring = new Node[lambda+mu];
+	{
+	    bool shouldTerminate = false;
+	    int generation = 0;
+	    Eigen::VectorXd *y = new Eigen::VectorXd[mu];
+	    Node *offspring = new Node[lambda+mu];
 
-	  while(!shouldTerminate)
-	  {
-	  delete[] y;
-	  delete[] offspring;
+	    while(!shouldTerminate)
+	    {
+		delete[] y;
+		delete[] offspring;
 
-	  y = new Eigen::VectorXd[mu];
-	  offspring = new Node[lambda+mu];
+		y = new Eigen::VectorXd[mu];
+		offspring = new Node[lambda+mu];
 
-	  Sample(offspring);
-	  for(int i = 0 ; i < mu ; i++)
-	  offspring[lambda + i ] = population[i];
+		Sample(offspring);
+		for(int i = 0 ; i < mu ; i++)
+		    offspring[lambda + i ] = population[i];
 
-	  sort_offspring(offspring , y);
+		sort_offspring(offspring , y);
 
 
-	  update_mean(offspring);	
+		update_mean(offspring);	
 
-	  update_covar(y);
+		update_covar(y);
 
-	  generation++;
+		generation++;
 
-	  for(int i = 0 ; i < mu ; i++)
-	  population[i] = offspring[i];
-	  bestNode = population[0];
+		for(int i = 0 ; i < mu ; i++)
+		    population[i] = offspring[i];
+		bestNode = population[0];
 
-	 *refsigma = sigma;
-	 *refcovar = covar;
+		*refsigma = sigma;
+		*refcovar = covar;
 
-	 if(abs(bestNode.fitness - best[funATT-1]) < 0.00001)
-	 {
-	 cout << nfe << endl << bestNode.allele << endl << bestNode.fitness << endl ;
-	 shouldTerminate = true;
-	 exit(0);
-	 }
-	 int count = 0;
-	 if(generation > count * 100)
-	 {
-	 cout << nfe << endl << bestNode.allele << endl << endl ;
-	 printf("%.6lf\n" , bestNode.fitness);
-	 if(nfe > 100000)
-	 exit(0);
-	 count ++;
-	//	   shouldTerminate = true;
+		if(abs(bestNode.fitness - best[funATT-1]) < 0.00001)
+		{
+		    cout << nfe << endl << bestNode.allele << endl << bestNode.fitness << endl ;
+		    shouldTerminate = true;
+		    exit(0);
+		}
+		int count = 0;
+		if(generation > count * 100)
+		{
+		    cout << nfe << endl << bestNode.allele << endl << endl ;
+		    printf("%.6lf\n" , bestNode.fitness);
+		    if(nfe > 100000)
+			exit(0);
+			count ++;
+		    //	   shouldTerminate = true;
+		}
+	    }
+	    delete[] y ;
+	    delete[] offspring;
 	}
-	}
-	delete[] y ;
-	delete[] offspring;
-	}
-	*/
+*/
 
 	double evaluate(Node *candidate)
 	{
@@ -199,8 +210,8 @@ class CMAES
 	    while(count != lambda )
 	    {
 		Eigen::MatrixXd sample = getMVN(zero , covar);
-		//	Eigen::VectorXd tmp = mean.allele + sigma * sample;
-		Eigen::VectorXd tmp = mean.allele + sigma * sample;
+	//	Eigen::VectorXd tmp = mean.allele + sigma * sample;
+		Eigen::VectorXd tmp = bestNode.allele + sigma * sample;
 		if(isFeasible(tmp))
 		{
 		    offspring[count].length = dimension;
@@ -210,7 +221,6 @@ class CMAES
 		curcount++;
 		if(curcount - count > 1000)
 		{
-		    exit(0);
 		    for(int i = 0 ; i < lambda - count ; i++)
 			offspring[i+count] = population[i];
 		    break;
@@ -222,26 +232,26 @@ class CMAES
 
 	void sort_offspring(Node *offspring , Eigen::VectorXd *y)
 	{
-	    double *EvaluationResult = new double[lambda];
+	    double *EvaluationResult = new double[lambda+mu];
 	    double meanEvalResult = evaluate(&mean);
 	    double bestEvalResult = evaluate(&bestNode);	
 	    float successfulCount = 0;
-	    for(int i = 0 ; i < lambda ; i++)
+	    for(int i = 0 ; i < lambda + mu ; i++)
 	    {
 		EvaluationResult[i] = evaluate(&offspring[i]);
-		if(EvaluationResult[i] < meanEvalResult  )
+		if(EvaluationResult[i] < bestEvalResult  && i <lambda)
 		    successfulCount = successfulCount + 1;
 	    }
 	    for(int i = 0 ; i < mu ; i++)
 	    {
-		for(int j = i+1 ; j < lambda ; j++)	
+		for(int j = i+1 ; j < lambda+mu ; j++)	
 		    if(offspring[i].fitness > offspring[j].fitness)
 		    {
 			Node tmp = offspring[i];
 			offspring[i] = offspring[j];
 			offspring[j] = tmp;
 		    }
-		y[i] = (offspring[i].allele-mean.allele) / sigma;
+		y[i] = (offspring[i].allele-bestNode.allele) / sigma;
 	    }
 	    delete[] EvaluationResult;
 	}
@@ -254,20 +264,12 @@ class CMAES
 
 	void update_pc()
 	{
-	    int hsig = 0;
-	    if(ps.norm() < 1.5*sqrt(dimension))
-		hsig = 1;
-	    pc = (1.0-cc)*pc + hsig * sqrt(cc*(2-cc)*mu_w) * yw;
+		int hsig = 0;
+		if(ps.norm() < 1.5*sqrt(dimension))
+		    hsig = 1;
+		pc = (1-cc)*pc + hsig * sqrt(cc*(2-cc)*mu_w)
 	}
 
-	void update_ps()
-	{
-	    Eigen::SelfAdjointEigenSolver<MatrixXd> es(covar);
-	    Eigen::MatrixXd tmp = es.operatorInverseSqrt();
-	    //cout << ps << endl << endl << tmp << endl << endl << yw << endl << endl;	
-	    ps = (1.0-cs)*ps + sqrt(cs*(2-cs)*mu_w) * tmp * yw;
-
-	}
 
 	void update_covar(Eigen::VectorXd * pop)
 	{
@@ -280,19 +282,12 @@ class CMAES
 		Cmu += (tmp*tmp.transpose()) ;
 	    }
 	    Cmu /= mu;
-	    covar = (1-c1-cmu) * covar + c1*pc*pc.transpose()  + cmu * Cmu;
-	}
-
-	void update_sigma()
-	{
-	    double tmp = sqrt(dimension) * ( 1.0 - 1.0 / (4*dimension) + 1.0 / (21 * dimension * dimension) );
-	    double val = exp ( cs / ds	* (ps.norm() / tmp - 1 ) );
-	    sigma = sigma * val;
+	    covar = (1-cc) * covar + cc * Cmu;
 	}
 	Node generate()
 	{
-	    if(isFeasible(bestNode.allele))
-		return bestNode;
+	    if(isFeasible(population[0].allele))
+		return population[0];
 	    else
 	    {
 		cout << "not feasible "<<endl;
