@@ -21,7 +21,7 @@ class GROUP
 		double getMean();
 		double getVariance();
 	public:
-
+		int gID;
 		int length;
 		list<Node> nodes;
 		double max;
