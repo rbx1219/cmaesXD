@@ -43,6 +43,7 @@ class CMAES
 	int terminate_generation;
 	int dimension;
 	double mu_w;
+	double *weight;
 	double cc , cs , c1 , cmu , ds;
 	Node * population;
 	Node mean;
@@ -56,43 +57,35 @@ class CMAES
 
 	CMAES(int parent , int child , int dim , Node *refPopulation , int terGen , double refsigma , Eigen::MatrixXd refcovar)
 	{
-	    mu = 0.5 * child;
-	    lambda = child;
-	    dimension = dim;
-	    mu_w = 0.3 * lambda;
-	    population = new Node[parent];
-	    population = refPopulation;
-	    cc = (double) 4.0 / dimension;
-	    cs = (double) 4.0 / dimension;
-	    c1 = (double) 2.0 / dimension / dimension;
-	    cmu = double(mu_w) / dimension / dimension;
-	    ds = 1 + sqrt(mu_w / dimension);	
-	    mean.length = dimension;
-	    mean.allele.setZero();
-	    mean.allele = calculateMean(population , parent);
-	    //bestNode = findingbest();
-	    bestNode.length = dimension;
-	    bestNode.allele.setZero(dimension);
-	    bestNode= refPopulation[0];
-	    testFunc = testFunctionFactory(funATT,dimension);
-	    initial();
-	    pc.setZero(dimension);
-	    ps.setZero(dimension);
-	    yw.setZero(dimension);
 	    sigma = refsigma;
 	    covar = refcovar;
-	    if(terGen == -1)
-		terminate_generation = 100000 ;
-	    else
-
-		terminate_generation = terGen;	
+	    init(parent , child , dim , refPopulation , terGen);	
 	}
 	CMAES(int parent , int child , int dim , Node *refPopulation , int terGen)
+	{
+	    sigma = 1.0;
+	    covar.setIdentity(dim , dim);
+	    init(parent , child , dim , refPopulation , terGen);	
+	}
+	void init(int parent , int child , int dim , Node * refPopulation , int terGen)
 	{
 	    mu = 0.5 * child;
 	    lambda = child;
 	    dimension = dim;
-	    mu_w = 0.3 * lambda;
+	    mu_w = 0.0;		
+	    weight = new double[mu];
+	    double count = 0.0;
+	    for(int i = 0 ; i < mu ; i++)
+	    {
+		weight[i] = log(mu+0.5) - log(i+1);
+	    	count += weight[i];
+	    }
+	    for(int i = 0 ; i < mu ; i++)
+	    {
+		weight[i] /= count;
+		mu_w +=  ( weight[i] * weight[i]) ;
+	    }
+	    mu_w = 1 / mu_w;
 	    population = new Node[parent];
 	    population = refPopulation;
 	    cc = (double) 4.0 / dimension;
@@ -112,15 +105,17 @@ class CMAES
 	    pc.setZero(dimension);
 	    ps.setZero(dimension);
 	    yw.setZero(dimension);
-	    sigma = 1.0;
-	    covar.setIdentity(dimension , dimension);
 	    if(terGen == -1)
-		terminate_generation = 100000 ;
+		terminate_generation = 100000 / lambda ;
 	    else
 
 		terminate_generation = terGen;	
+	
 	}
-
+	~CMAES()
+	{
+		delete[] weight;
+	}
 	void run()
 	{
 
@@ -141,8 +136,7 @@ class CMAES
 		sort_offspring(offspring , y);
 		yw.setZero(dimension);
 		for(int i = 0 ; i < mu ; i++)
-		    yw = yw + y[i];
-		yw = yw / mu;
+		    yw = yw + y[i] * weight[i];
 
 		update_mean(offspring);
 
@@ -154,14 +148,10 @@ class CMAES
 		//		printf("cc : %lf cs : %lf cmu : %lf c1 : %lf ds : %lf\n" , cc , cs, cmu , c1 , ds);
 		bestNode = offspring[0];
 		generation ++ ;
-		if( isBest() || generation > terminate_generation)
+		if( isBest() || generation >= terminate_generation)
 		{
-		    if(terminate_generation == 10 || 30)
-		    {
-//			printf("%.9lf %d\n",offspring[0].fitness , nfe);
-//			cout << bestNode.allele << endl << endl;
-			;
-		    }
+			//printf("%.9lf %d\n",offspring[0].fitness , nfe);
+			//cout << bestNode.allele << endl << endl;
 		    shouldTerminate = true;
 		}
 	    }
