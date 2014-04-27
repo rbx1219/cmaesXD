@@ -9,12 +9,12 @@
 #include "global.h"
 
 #define dimension 10
-#define PopSize 800
+#define PopSize 450
 
 double upperbound ;
 double lowerbound ;
 
-const int num_groups = 20;
+const int num_groups = 15;
 int fe = PopSize;
 int lambda;
 int NewGroupCount = 0;
@@ -23,7 +23,11 @@ double minFitness = 999999;
 int Criteria[num_groups];
 int min_GID = 999;
 
+
 Eigen::MatrixXd cov[num_groups];
+
+double BigSigma ;
+Eigen::MatrixXd BigCov;
 
 
 bool shouldTerminate(int n)
@@ -125,7 +129,7 @@ void updateGroups(GROUP *groups)
     int curFE = fe;
     int candidate = num_groups;
     for(int i = 0 ; i < num_groups ; i++)
-	if(Criteria[uni[i]] == 2)			
+	if(Criteria[uni[i]] == 1)			
 	{
 	    candidate = uni[i];
 	    break;
@@ -139,7 +143,6 @@ void updateGroups(GROUP *groups)
 	    }
     delete[] uni;
     /*end of 1*/	
-    cout << "candidate : " << candidate  << endl;	
     if(candidate != num_groups)
     {
 	NewGroupCount++;
@@ -154,7 +157,7 @@ void updateGroups(GROUP *groups)
 	    temp_pop[count++] = groups[i].get_best_vector();
 	    //printf("%2d : size %d\n" , i , groups[i].nodes.size());
 	}
-	CMAES es(num_groups -1, lambda , dimension , temp_pop , 10);
+	CMAES es (num_groups -1, lambda , dimension , temp_pop , 1 );
 	es.run();
 	Node temp_node = es.generate();
 	if(temp_node.fitness < minFitness)
@@ -264,6 +267,9 @@ int main(int argc , char **argv)
     CMAES::a.rng.seed(time(NULL));	
 
     //CMAES with UCB
+    char output[10];
+    sprintf(output ,"%d.log" , funATT);
+    FILE *fout = fopen(output , "a");
     for(int i = 0 ; i < num_groups ; i++)
     {
 	groups[i].gID = i;
@@ -271,15 +277,20 @@ int main(int argc , char **argv)
 	cov[i].setIdentity(dimension , dimension);
     	Criteria[i] = 0;
     }
+    BigSigma = 1.0;
+    BigCov.setIdentity(dimension,dimension);
+    bool pFlag = false;
     while(!shouldTerminate(generation ++))
     {
 	pull(groups , 0);
 	updateGroups(groups);
-	printf("current best is %lf in %d \n " , minFitness , min_GID);
+//	printf("current best is %lf in %d \n " , minFitness , min_GID);
+	if(minFitness - best[funATT-1] < accuracy[funATT-1] && !pFlag)
+	    fprintf(fout , "%d " , nfe) , pFlag = true;
 	if(abs(minFitness - best[funATT -1 ]) < 1e-6)
 	{
-	    cout << "nfe : " << nfe << endl;
-	    break;
+//	    cout << "nfe : " << nfe << endl;
+	    ;
 	}
     }
 
@@ -299,8 +310,11 @@ int main(int argc , char **argv)
 //	printf("%d : %d %lf\n" , i, groups[sort[i]].gID , groups[sort[i]].get_best_vector().fitness);
     }
 
-    printf("%d in %d generations\n" , NewGroupCount , generation);
-
+ //   printf("%d in %d generations\n" , NewGroupCount , generation);
+    if(!pFlag)	
+	fprintf(fout , "100000 " );
+    fprintf(fout , "%e\n" , minFitness - best[funATT-1]);
+    fclose(fout);
     exit(0);	
     /*
     //pure CMAES

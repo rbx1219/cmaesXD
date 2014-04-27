@@ -297,7 +297,7 @@ class CMAES
 
 	bool isBest()
 	{
-	    if(abs(bestNode.fitness - best[funATT-1]) < 0.0000001)
+	    if(abs(bestNode.fitness - best[funATT-1]) < accuracy[funATT-1])
 		return true;
 	    return false;
 	}
