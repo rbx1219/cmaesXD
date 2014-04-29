@@ -71,7 +71,7 @@ void pull(GROUP *groups , int stage )
 
     /*2. CMAES in best UCB group*/
 
-    int UCBTimer = 25;
+    int UCBTimer = 30;
     Node *temp_pop = new Node[ groups[minX].nodes.size() ];
 
     list< Node >::iterator iter = groups[minX].nodes.begin();
@@ -103,18 +103,11 @@ void pull(GROUP *groups , int stage )
     //    cout << minX << " : " << setprecision(13) << temp_node.fitness << endl;
     /*3. if stage == 0 replace the worst node with the new one*/
     if(stage == 0)
-	for(iter = groups[minX].nodes.begin() ; iter != groups[minX].nodes.end() ; ++iter)
-	    if( iter->fitness == groups[minX].getmax() )
-	    {
-		groups[minX].nodes.erase(iter++);
-		break;
-	    }
+	groups[minX].replace_worst(temp_node , fe++);
     /*    if(stage == 1)
 	  {
 	  printf("in updating now choosing %d : size %d \n" , minX , groups[minX].nodes.size());
 	  }*/
-    if(stage == 0)	
-	groups[minX].push(temp_node , fe++);
     if(stage == 1)
 	groups[minX].push(temp_node , fe);
     /*end of 3*/	
@@ -133,7 +126,7 @@ void updateGroups(GROUP *groups)
     int curFE = fe;
     int candidate = num_groups;
     for(int i = 0 ; i < num_groups ; i++)
-	if(Criteria[uni[i]] == 2)			
+	if(Criteria[uni[i]] == 1)			
 	{
 	    candidate = uni[i];
 	    break;
@@ -149,8 +142,8 @@ void updateGroups(GROUP *groups)
     /*end of 1*/	
     if(candidate != num_groups)
     {
-	NewGroupCount++;
 	groups[candidate].gID = NewGroupCount + num_groups;	
+	NewGroupCount++;
 	/*2. generating new node according to mean vectors of  (num_groups - 1) groups */
 	Node *temp_pop = new Node[ num_groups -1 ];
 	int count = 0;
@@ -161,7 +154,7 @@ void updateGroups(GROUP *groups)
 	    temp_pop[count++] = groups[i].get_best_vector();
 	    //printf("%2d : size %d\n" , i , groups[i].nodes.size());
 	}
-	CMAES es (num_groups -1, lambda , dimension , temp_pop , 20 );
+	CMAES es (num_groups -1, lambda , dimension , temp_pop , 40 );
 	es.run();
 	Node temp_node = es.generate();
 	if(temp_node.fitness < minFitness)
@@ -272,9 +265,6 @@ int main(int argc , char **argv)
     CMAES::a.rng.seed(time(NULL));	
 
     //CMAES with UCB
-    //char output[10];
-    //sprintf(output ,"%d.log" , funATT);
-    //FILE *fout = fopen(output , "a");
     for(int i = 0 ; i < num_groups ; i++)
     {
 	groups[i].gID = i;
@@ -282,32 +272,27 @@ int main(int argc , char **argv)
 	cov[i].setIdentity(dimension , dimension);
 	Criteria[i] = 0;
     }
-    bool pFlag = false;
+    double error;
     while(!shouldTerminate(generation ++))
     {
 	pull(groups , 0);
 	updateGroups(groups);
-	//	printf("%e\n " , minFitness -best[funATT -1]);
-	//		if(minFitness - best[funATT-1] < accuracy[funATT-1] && !pFlag)
-	//		fprintf(fout , "%d " , nfe) , pFlag = true;
-	if(abs(minFitness - best[funATT -1 ]) < accuracy[funATT-1])
+	error = minFitness - best[funATT -1];
+	if(error < accuracy[funATT-1])
 	{
-	    ;
+	   Node tmp = groups[min_group].get_best_vector();
+	   while(!shouldTerminate(2))
+	   {
+	   	CMAES es(1,atoi(argv[2]) ,dimension , &tmp , 100);
+		es.run();
+
+		if(es.generate().fitness < minFitness)
+			minFitness = es.generate().fitness , tmp = es.generate();
+	   };
 	}
     }
-    double tmp = minFitness - best[funATT-1];
-    tmp = tmp > 0 ? tmp : 1e-15;
-    printf("%e \n " ,  tmp);
-//    for(int i = 0 ; i < dimension ; i++)
-
-
-
-    //   printf("%d in %d generations\n" , NewGroupCount , generation);
-    /*    if(!pFlag)	
-	  fprintf(fout , "100000 " );
-	  fprintf(fout , "%e\n" , minFitness - best[funATT-1]);
-	  fclose(fout);*/
-
+    error = error > 0 ? error : 1e-15;
+    printf("%d in %d generate %e\n",NewGroupCount , generation , error)	;
     //pure CMAES
     /*
        while(!shouldTerminate(generation++))

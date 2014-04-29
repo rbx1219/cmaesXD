@@ -36,7 +36,7 @@ class GROUP
 		double calculateUCB(int total);
 		double getmax();
 		double getmin();
-		void replace_worst(Node a);
+		void replace_worst(Node a , int time);
 
 
 		Node get_mean_vector()

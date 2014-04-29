@@ -123,11 +123,22 @@ Node GROUP::get_best_vector()
 	return best ;
 }
 
-void GROUP::replace_worst(Node candidate)
+void GROUP::replace_worst(Node candidate , int time)
 {
 	double max = getmax();
 	list<Node>::iterator iter = nodes.begin();
 	for( ; iter!= nodes.end() ; ++iter)
 		if(iter->fitness = max)
-			*iter = candidate;
+		{
+
+		    sum -= max;
+		    sum2 -= max*max;
+		    *iter = candidate;
+		    double t = candidate.fitness;
+		    sum += t;
+		    sum2 += t*t;	
+		    LastModifiedFE = time;	
+		    break;	
+		}
+
 }
