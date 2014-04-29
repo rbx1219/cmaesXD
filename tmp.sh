@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {1..25}
+for i in {18..25}
 do
     if [ -f $i.log ] 
     then
@@ -8,6 +8,6 @@ do
     fi
     for j in {1..25}
     do
-	./cmaesXD $i 20
+	./cmaesXD $i 20 | tee -a $i.log
     done
 done

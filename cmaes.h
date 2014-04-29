@@ -148,7 +148,7 @@ class CMAES
 		//		printf("cc : %lf cs : %lf cmu : %lf c1 : %lf ds : %lf\n" , cc , cs, cmu , c1 , ds);
 		bestNode = offspring[0];
 		generation ++ ;
-		if( isBest() || generation >= terminate_generation)
+		if( generation >= terminate_generation)
 		{
 			//printf("%.9lf %d\n",offspring[0].fitness , nfe);
 			//cout << bestNode.allele << endl << endl;

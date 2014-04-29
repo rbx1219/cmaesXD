@@ -16,7 +16,7 @@ int main()
 	
 	for(int j = 0 ; j < 25; j++)
 	{
-	    fscanf(fin,"%d %lf",&nfe[j] , &error[j]);
+	    fscanf(fin,"%lf", &error[j]);
 	    mean += error[j];
 	}
 	mean /= 25;
@@ -32,14 +32,14 @@ int main()
 			error[j] = error[k];
 			error[k] = dtmp;
 		}
-	printf("problem %d : \n" , i+1);
-    	printf(" best   %e \n" , error[0]);
-	printf(" 7th    %e \n" , error[6]);
-	printf(" median %e \n" , error[12]);
-	printf(" 19th   %e \n" , error[18]);
-	printf(" worst  %e \n" , error[24]);
-	printf(" mean   %e \n" , mean);
-	printf("\n");
+//	printf("problem %d : \n" , i+1);
+//    	printf("%e \n" , error[0]);
+//	printf(" 7th    %e \n" , error[6]);
+	printf("%e \n" , error[12]);
+//	printf(" 19th   %e \n" , error[18]);
+//	printf(" worst  %e \n" , error[24]);
+//	printf(" mean   %e \n" , mean);
+//	printf("\n");
     }
     fclose(fin);
 	return 0;

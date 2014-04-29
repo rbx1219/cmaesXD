@@ -39,6 +39,5 @@ double F01_shifted_sphere::f(double *x,int length)
 	result = sphere(m_z,length);
 
 	result += m_bias;
-
 	return (result);
 }

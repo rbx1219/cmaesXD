@@ -21,7 +21,7 @@ int NewGroupCount = 0;
 double sigma[num_groups];
 double minFitness = 999999;
 int Criteria[num_groups];
-int min_GID = 999;
+int min_group = 999;
 
 
 Eigen::MatrixXd cov[num_groups];
@@ -83,15 +83,19 @@ void pull(GROUP *groups , int stage )
     Node best = groups[minX].get_best_vector();	
     CMAES es(1 , lambda , dimension , &best , UCBTimer , sigma[minX] , cov[minX]);	
     es.run();
-    
+
     Node temp_node(dimension);
     temp_node=es.generate();
-    
+
     //  recording work
     if(temp_node.fitness < minFitness)
-	minFitness = temp_node.fitness , min_GID = groups[minX].gID;
+    {
+	minFitness = temp_node.fitness ;
+//	printf("%.200lf in pull\n",temp_node.fitness);
+	min_group = minX;
+    }
     if(best.fitness == temp_node.fitness)
-    	Criteria[minX] ++;
+	Criteria[minX] ++;
     else 
 	Criteria[minX] = 0;
     sigma[minX] = es.sigma;
@@ -129,13 +133,13 @@ void updateGroups(GROUP *groups)
     int curFE = fe;
     int candidate = num_groups;
     for(int i = 0 ; i < num_groups ; i++)
-	if(Criteria[uni[i]] == 1)			
+	if(Criteria[uni[i]] == 2)			
 	{
 	    candidate = uni[i];
 	    break;
 	}
     if(candidate == num_groups)
-    	for(int i = 0 ; i < num_groups ; i++)
+	for(int i = 0 ; i < num_groups ; i++)
 	    if(curFE - groups[uni[i]].LastModifiedFE > groups[uni[i]].nodes.size() ) 
 	    {
 		candidate = uni[i];
@@ -157,13 +161,14 @@ void updateGroups(GROUP *groups)
 	    temp_pop[count++] = groups[i].get_best_vector();
 	    //printf("%2d : size %d\n" , i , groups[i].nodes.size());
 	}
-	CMAES es (num_groups -1, lambda , dimension , temp_pop , 1 );
+	CMAES es (num_groups -1, lambda , dimension , temp_pop , 20 );
 	es.run();
 	Node temp_node = es.generate();
 	if(temp_node.fitness < minFitness)
-	    minFitness = temp_node.fitness , min_GID = groups[candidate].gID;
-	if(es.isBest())
-	    printf("%d generates %.6lf\n",groups[candidate].gID , temp_node.fitness);
+	{
+	    minFitness = temp_node.fitness ;
+	    min_group = candidate;
+	}
 	/*end of 2*/
 
 	/*3. clear the candidate group and fill up remain nodes*/
@@ -267,101 +272,57 @@ int main(int argc , char **argv)
     CMAES::a.rng.seed(time(NULL));	
 
     //CMAES with UCB
-    char output[10];
-    sprintf(output ,"%d.log" , funATT);
-    FILE *fout = fopen(output , "a");
+    //char output[10];
+    //sprintf(output ,"%d.log" , funATT);
+    //FILE *fout = fopen(output , "a");
     for(int i = 0 ; i < num_groups ; i++)
     {
 	groups[i].gID = i;
 	sigma[i] = 1.0;
 	cov[i].setIdentity(dimension , dimension);
-    	Criteria[i] = 0;
+	Criteria[i] = 0;
     }
-    BigSigma = 1.0;
-    BigCov.setIdentity(dimension,dimension);
     bool pFlag = false;
     while(!shouldTerminate(generation ++))
     {
 	pull(groups , 0);
 	updateGroups(groups);
-//	printf("current best is %lf in %d \n " , minFitness , min_GID);
-	if(minFitness - best[funATT-1] < accuracy[funATT-1] && !pFlag)
-	    fprintf(fout , "%d " , nfe) , pFlag = true;
-	if(abs(minFitness - best[funATT -1 ]) < 1e-6)
+	//	printf("%e\n " , minFitness -best[funATT -1]);
+	//		if(minFitness - best[funATT-1] < accuracy[funATT-1] && !pFlag)
+	//		fprintf(fout , "%d " , nfe) , pFlag = true;
+	if(abs(minFitness - best[funATT -1 ]) < accuracy[funATT-1])
 	{
-//	    cout << "nfe : " << nfe << endl;
 	    ;
 	}
     }
+    double tmp = minFitness - best[funATT-1];
+    tmp = tmp > 0 ? tmp : 1e-15;
+    printf("%e \n " ,  tmp);
+//    for(int i = 0 ; i < dimension ; i++)
 
-    int sort[num_groups];	
-    for(int i = 0 ; i < num_groups ; i++)
-	sort[i] = i;
-    for(int i = 0 ; i < num_groups; i++)
-    {
 
-	for(int j = i+1 ; j < num_groups ; j++)
-	    if(groups[sort[j]].get_best_vector().fitness < groups[sort[i]].get_best_vector().fitness)
-	    {
-		int t = sort[i];
-		sort[i] = sort[j];
-		sort[j] = t;
-	    }
-//	printf("%d : %d %lf\n" , i, groups[sort[i]].gID , groups[sort[i]].get_best_vector().fitness);
-    }
 
- //   printf("%d in %d generations\n" , NewGroupCount , generation);
-    if(!pFlag)	
-	fprintf(fout , "100000 " );
-    fprintf(fout , "%e\n" , minFitness - best[funATT-1]);
-    fclose(fout);
-    exit(0);	
-    /*
+    //   printf("%d in %d generations\n" , NewGroupCount , generation);
+    /*    if(!pFlag)	
+	  fprintf(fout , "100000 " );
+	  fprintf(fout , "%e\n" , minFitness - best[funATT-1]);
+	  fclose(fout);*/
+
     //pure CMAES
-    
+    /*
        while(!shouldTerminate(generation++))
        {
     //    CMAES es(PopSize , atoi(argv[2]) , dimension , population , -1);
-    CMAES es(1 , atoi(argv[2]) , dimension , &population[0] , -1);
+    CMAES es(1 , atoi(argv[2]) , dimension , &population[0] , 1000);
     es.run();
-    Node best = es.generate();
+    Node bestNode = es.generate();
 
-    printf("%.15lf , %d\n" , best.fitness , nfe);
-    
-    }
-     */ 
+    cout << bestNode.allele << endl;
+    printf("%e , %d\n" , bestNode.fitness - best[funATT-1] , nfe);
 
-    /*	
-    //  double CMAES
-    Node *candidate_pop = new Node[num_groups];
-    for(int i = 0 ; i < num_groups ; i++)
-    {
-    Node *curPop = new Node[groups[i].nodes.size()];
-    int j = 0;
-    list<Node>::iterator iter = groups[i].nodes.begin();
-    while(iter != groups[i].nodes.end())
-    {
-    curPop[j] = *iter;
-    j++ , iter++;
-    }
-    CMAES es(groups[i].nodes.size() , atoi(argv[2]) , dimension , curPop , 50 );
-    es.run();	
-    candidate_pop[ i ] = es.generate();
-    groups[i].replace_worst(candidate_pop[i]);
-    delete[] curPop;
     }
 
-    CMAES outeres(num_groups , atoi(argv[2]) , dimension , candidate_pop , -1);
-    while(!shouldTerminate(generation++))
-    {
-
-    outeres.run();
-    cout << "outergenerates : " << setprecision(6) <<outeres.generate().fitness << endl << endl;
-    if(outeres.isBest())
-    cout << "haha";
-    getchar();
-    }
-    delete[] candidate_pop;*/
+*/
     return 0;
 }
 

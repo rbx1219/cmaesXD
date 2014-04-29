@@ -219,9 +219,8 @@ double sphere(double *x,int length) {
 	double sum = 0.0;
 
 	for (int i = 0 ; i < length ; i ++) {
-		sum += x[i] * x[i];
+	    sum += x[i] * x[i];
 	}
-
 	return (sum);
 }
 
@@ -513,7 +512,7 @@ double hybrid_composition(double *x, HCJob &job,int length) {
 // Shift
 void shift(double *results, double *x, double *o,int length) {
 	for (int i = 0 ; i < length ; i ++) {
-		results[i] = x[i] - o[i];
+	    results[i] = x[i] - o[i];
 	}
 }
 
