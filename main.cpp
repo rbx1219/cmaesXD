@@ -183,7 +183,7 @@ void updateGroups(GROUP *groups)
 
 int main(int argc , char **argv)
 {
-
+    //parameter declaration/*{{{*/
     Node *central = new Node[num_groups];
     Node *population = new Node[PopSize];
 
@@ -201,8 +201,8 @@ int main(int argc , char **argv)
     upperbound = domainupbound[funATT-1] , lowerbound = domainlowbound[funATT-1];
     for(int i = 0 ; i < num_groups ; i++)
 	groups[i].length = dimension;
-
-    /*initial pop */
+/*}}}*/
+    /*initial pop *//*{{{*/
     for(int i = 0 ; i < PopSize ; i++)
     {
 	population[i].length = dimension;
@@ -210,51 +210,14 @@ int main(int argc , char **argv)
 	for(int j = 0 ; j < dimension ; j++)
 	    population[i].allele(j) = rand.uniform(lowerbound , upperbound);
 	population[i].setFitness(groups[0].evaluate( population[i] , dimension) );    	
-    }
-    /*K-MEANS below*/
+    }/*}}}*/
+    /*K-MEANS below*//*{{{*/
     int *uniarray = new int[PopSize];
     rand.uniformArray(uniarray , PopSize , 0 , PopSize-1);
 
     for(int i = 0 ; i < num_groups ; i++)
 	central[i] = population[uniarray[i]];
     delete[] uniarray;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     while(SwapFlag)
     {
 	SwapFlag = false;
@@ -296,8 +259,11 @@ int main(int argc , char **argv)
     for(int i = 0 ; i < PopSize ; i++)
 	groups[ clusteringCategory[i] ].push(population[i] , PopSize);
 
-
+/*}}}*/
     CMAES::a.rng.seed(time(NULL));	
+
+
+
 
     //CMAES with UCB
     for(int i = 0 ; i < num_groups ; i++)
