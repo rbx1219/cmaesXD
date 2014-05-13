@@ -78,7 +78,7 @@ class CMAES
 	    for(int i = 0 ; i < mu ; i++)
 	    {
 		weight[i] = log(mu+0.5) - log(i+1);
-	    	count += weight[i];
+		count += weight[i];
 	    }
 	    for(int i = 0 ; i < mu ; i++)
 	    {
@@ -110,11 +110,11 @@ class CMAES
 	    else
 
 		terminate_generation = terGen;	
-	
+
 	}
 	~CMAES()
 	{
-		delete[] weight;
+	    delete[] weight;
 	}
 	void run()
 	{
@@ -150,8 +150,8 @@ class CMAES
 		generation ++ ;
 		if( generation >= terminate_generation)
 		{
-			//printf("%.9lf %d\n",offspring[0].fitness , nfe);
-			//cout << bestNode.allele << endl << endl;
+		    //printf("%.9lf %d\n",offspring[0].fitness , nfe);
+		    //cout << bestNode.allele << endl << endl;
 		    shouldTerminate = true;
 		}
 	    }
@@ -188,6 +188,10 @@ class CMAES
 		    offspring[count].allele = tmp;
 		    count++;
 		}
+		else
+		{
+			;
+		}
 		curcount++;
 		if(curcount - count > 1000)
 		{
@@ -200,8 +204,8 @@ class CMAES
 			 break;*/
 		    sigma /= 2;
 		    curcount = count ;
-			if(sigma != sigma)
-			    sigma = 1.0;
+		    if(sigma != sigma)
+			sigma = 1.0;
 		}
 	    }
 	}	
@@ -264,9 +268,8 @@ class CMAES
 	    for(int i = 0 ; i < mu ; i++)
 	    {
 		tmp = pop[i];
-		Cmu += (tmp*tmp.transpose()) ;
+		Cmu += (tmp*tmp.transpose()) * weight[i] ;
 	    }
-	    Cmu /= mu;
 	    covar = (1-c1-cmu) * covar + c1*pc*pc.transpose()  + cmu * Cmu;
 	}
 
