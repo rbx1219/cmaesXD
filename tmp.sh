@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for i in {18..25}
+for i in {23..23}
 do
     if [ -f $i.log ] 
     then

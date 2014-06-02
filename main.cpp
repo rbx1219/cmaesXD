@@ -283,9 +283,10 @@ int main(int argc , char **argv)
 	pull(groups , 0);
 	updateGroups(groups , &outerES);
 	error = minFitness - best[funATT -1];
+    	printf("%d\n" , nfe);
     }
     error = error > 0 ? error : 1e-15;
-    printf("%d in %d generate %e\n",NewGroupCount , generation , error)	;
+    printf("%e\n", error)	;
     //pure CMAES
     /*
        while(!shouldTerminate(generation++))

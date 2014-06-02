@@ -134,6 +134,8 @@ class CMAES
 		Sample(offspring);
 
 		sort_offspring(offspring , y);
+		if(nfe >= 100000)
+		    return ;
 		yw.setZero(dimension);
 		for(int i = 0 ; i < mu ; i++)
 		    yw = yw + y[i] * weight[i];
@@ -154,7 +156,7 @@ class CMAES
 		    //cout << bestNode.allele << endl << endl;
 		    shouldTerminate = true;
 		}
-	    	if( nfe >= 100000)
+		if( nfe >= 100000)
 		    shouldTerminate = true;
 	    }
 	}
@@ -222,6 +224,10 @@ class CMAES
 	    for(int i = 0 ; i < lambda ; i++)
 	    {
 		EvaluationResult[i] = evaluate(&offspring[i]);
+		
+		if(nfe >= 100000)
+		    return;
+		
 		if(EvaluationResult[i] < meanEvalResult  )
 		    successfulCount = successfulCount + 1;
 	    }
