@@ -154,6 +154,8 @@ class CMAES
 		    //cout << bestNode.allele << endl << endl;
 		    shouldTerminate = true;
 		}
+	    	if( nfe >= 100000)
+		    shouldTerminate = true;
 	    }
 	}
 

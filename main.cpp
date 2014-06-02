@@ -116,7 +116,7 @@ void pull(GROUP *groups , int stage )
 	return;
 }
 
-void updateGroups(GROUP *groups)
+void updateGroups(GROUP *groups , CMAES * es)
 {
 
     /*1. determine the to-be-deleted group*/
@@ -144,19 +144,19 @@ void updateGroups(GROUP *groups)
     {
 	groups[candidate].gID = NewGroupCount + num_groups;	
 	NewGroupCount++;
-	/*2. generating new node according to mean vectors of  (num_groups - 1) groups */
-	Node *temp_pop = new Node[ num_groups -1 ];
-	int count = 0;
+	/*2. generating new node according to num_groups optima */
+	Node *temp_pop = new Node[ num_groups  ];
 	for(int i = 0 ; i < num_groups  ; i++)
-	{
-	    if(i == candidate)
-		continue;
-	    temp_pop[count++] = groups[i].get_best_vector();
-	    //printf("%2d : size %d\n" , i , groups[i].nodes.size());
-	}
-	CMAES es (num_groups -1, lambda , dimension , temp_pop , 40 );
+	    temp_pop[i] = groups[i].get_best_vector();
+	
+	/*CMAES es (num_groups -1, lambda , dimension , temp_pop , 40 );
 	es.run();
-	Node temp_node = es.generate();
+	Node temp_node = es.generate();*/
+	for(int i = 0 ; i < num_groups ; i++)
+	    es->population[i] = temp_pop[i];
+	es->update_mean(es->population);
+	es->run();
+	Node temp_node = es->generate();
 	if(temp_node.fitness < minFitness)
 	{
 	    minFitness = temp_node.fitness ;
@@ -266,31 +266,23 @@ int main(int argc , char **argv)
 
 
     //CMAES with UCB
+    Node hill[num_groups];
     for(int i = 0 ; i < num_groups ; i++)
     {
 	groups[i].gID = i;
 	sigma[i] = 1.0;
 	cov[i].setIdentity(dimension , dimension);
 	Criteria[i] = 0;
+	hill[i] = groups[i].get_best_vector();
     }
+	
+    CMAES outerES(num_groups , atoi(argv[2]) , dimension , hill , 1);
     double error;
     while(!shouldTerminate(generation ++))
     {
 	pull(groups , 0);
-	updateGroups(groups);
+	updateGroups(groups , &outerES);
 	error = minFitness - best[funATT -1];
-	if(error < accuracy[funATT-1])
-	{
-	   Node tmp = groups[min_group].get_best_vector();
-	   while(!shouldTerminate(2))
-	   {
-	   	CMAES es(1,atoi(argv[2]) ,dimension , &tmp , 100);
-		es.run();
-
-		if(es.generate().fitness < minFitness)
-			minFitness = es.generate().fitness , tmp = es.generate();
-	   };
-	}
     }
     error = error > 0 ? error : 1e-15;
     printf("%d in %d generate %e\n",NewGroupCount , generation , error)	;
