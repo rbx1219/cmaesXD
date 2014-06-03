@@ -1,6 +1,12 @@
 #!/bin/bash
 
-for i in {23..23}
+read  begin
+read  end
+
+echo $begin
+echo $end
+
+for (( i=$begin ; i<=$end ; i++))
 do
     if [ -f $i.log ] 
     then

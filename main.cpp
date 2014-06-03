@@ -91,7 +91,7 @@ void pull(GROUP *groups , int stage )
     if(temp_node.fitness < minFitness)
     {
 	minFitness = temp_node.fitness ;
-//	printf("%.200lf in pull\n",temp_node.fitness);
+	//	printf("%.200lf in pull\n",temp_node.fitness);
 	min_group = minX;
     }
     if(best.fitness == temp_node.fitness)
@@ -129,6 +129,7 @@ void updateGroups(GROUP *groups , CMAES * es)
 	if(Criteria[uni[i]] == 1)			
 	{
 	    candidate = uni[i];
+	    Criteria[candidate] = 0;
 	    break;
 	}
     if(candidate == num_groups)
@@ -138,33 +139,26 @@ void updateGroups(GROUP *groups , CMAES * es)
 		candidate = uni[i];
 		break;
 	    }
+    if(candidate == num_groups)
+	 candidate = uni[uni[uni[0]]];
     delete[] uni;
     /*end of 1*/	
-    if(candidate != num_groups)
+    Node *temp_pop = new Node[ num_groups  ];
+    for(int i = 0 ; i < num_groups  ; i++)
+	temp_pop[i] = groups[i].get_best_vector();
+
+    for(int i = 0 ; i < num_groups ; i++)
+	es->population[i] = temp_pop[i];
+    es->update_mean(es->population);
+    es->run();
+    Node temp_node = es->generate();
+    if(temp_node.fitness < minFitness)
     {
+	minFitness = temp_node.fitness ;
+	min_group = candidate;
+
 	groups[candidate].gID = NewGroupCount + num_groups;	
 	NewGroupCount++;
-	/*2. generating new node according to num_groups optima */
-	Node *temp_pop = new Node[ num_groups  ];
-	for(int i = 0 ; i < num_groups  ; i++)
-	    temp_pop[i] = groups[i].get_best_vector();
-	
-	/*CMAES es (num_groups -1, lambda , dimension , temp_pop , 40 );
-	es.run();
-	Node temp_node = es.generate();*/
-	for(int i = 0 ; i < num_groups ; i++)
-	    es->population[i] = temp_pop[i];
-	es->update_mean(es->population);
-	es->run();
-	Node temp_node = es->generate();
-	if(temp_node.fitness < minFitness)
-	{
-	    minFitness = temp_node.fitness ;
-	    min_group = candidate;
-	}
-	/*end of 2*/
-
-	/*3. clear the candidate group and fill up remain nodes*/
 	int remain = groups[candidate].nodes.size() -1;
 	sigma[candidate] = 1.0;
 	cov[candidate].setIdentity(dimension , dimension);
@@ -176,7 +170,6 @@ void updateGroups(GROUP *groups , CMAES * es)
 	/*end of 3*/
 
 	delete[] temp_pop;
-
     }
 }
 
@@ -201,7 +194,7 @@ int main(int argc , char **argv)
     upperbound = domainupbound[funATT-1] , lowerbound = domainlowbound[funATT-1];
     for(int i = 0 ; i < num_groups ; i++)
 	groups[i].length = dimension;
-/*}}}*/
+    /*}}}*/
     /*initial pop *//*{{{*/
     for(int i = 0 ; i < PopSize ; i++)
     {
@@ -259,7 +252,7 @@ int main(int argc , char **argv)
     for(int i = 0 ; i < PopSize ; i++)
 	groups[ clusteringCategory[i] ].push(population[i] , PopSize);
 
-/*}}}*/
+    /*}}}*/
     CMAES::a.rng.seed(time(NULL));	
 
 
@@ -275,7 +268,7 @@ int main(int argc , char **argv)
 	Criteria[i] = 0;
 	hill[i] = groups[i].get_best_vector();
     }
-	
+
     CMAES outerES(num_groups , atoi(argv[2]) , dimension , hill , 1);
     double error;
     while(!shouldTerminate(generation ++))
@@ -283,7 +276,6 @@ int main(int argc , char **argv)
 	pull(groups , 0);
 	updateGroups(groups , &outerES);
 	error = minFitness - best[funATT -1];
-    	printf("%d\n" , nfe);
     }
     error = error > 0 ? error : 1e-15;
     printf("%e\n", error)	;
