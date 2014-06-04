@@ -45,12 +45,13 @@ class CMAES
 	double mu_w;
 	double *weight;
 	double cc , cs , c1 , cmu , ds;
+	int parentsize;
 	Node * population;
 	Node mean;
 	Node bestNode;
 	Eigen::MatrixXd covar;
 	Eigen::VectorXd pc , ps , yw;
-
+	Node *container;
 	static Eigen::internal::scalar_normal_dist_op<double> a;
 
 
@@ -74,6 +75,8 @@ class CMAES
 	    dimension = dim;
 	    mu_w = 0.0;		
 	    weight = new double[mu];
+	    container = new Node[lambda];
+	    parentsize = parent;
 	    double count = 0.0;
 	    for(int i = 0 ; i < mu ; i++)
 	    {
@@ -100,6 +103,8 @@ class CMAES
 	    bestNode.length = dimension;
 	    bestNode.allele.setZero(dimension);
 	    bestNode= refPopulation[0];
+	    for(int i = 0 ; i < lambda ; i++)
+		container[i] = mean;
 	    testFunc = testFunctionFactory(funATT,dimension);
 	    initial();
 	    pc.setZero(dimension);
@@ -115,6 +120,7 @@ class CMAES
 	~CMAES()
 	{
 	    delete[] weight;
+	    delete[] container;
 	}
 	void run()
 	{
@@ -156,6 +162,10 @@ class CMAES
 		    //cout << bestNode.allele << endl << endl;
 		    shouldTerminate = true;
 		}
+
+		for(int i = 0 ; i < lambda ; i++)
+		    container[i] = offspring[i];
+
 		if( nfe >= 100000)
 		    shouldTerminate = true;
 	    }
@@ -194,22 +204,21 @@ class CMAES
 		}
 		else
 		{
-			;
+		    ;
 		}
 		curcount++;
 		if(curcount - count > 1000)
 		{
-		    /*   for(int i = 0 ; i < lambda - count ; i++)
-			 {
-			 cout <<"graduate!!!" <<  population[i].allele<<endl;
-			 offspring[i+count].length = population[i].length;
-			 offspring[i+count].allele = population[i].allele;
-			 }
-			 break;*/
-		    sigma /= 2;
-		    curcount = count ;
-		    if(sigma != sigma)
-			sigma = 1.0;
+		    for(int i = 0 ; i < lambda - count ; i++)
+		    {
+			offspring[i+count].length = container[i].length;
+			offspring[i+count].allele = container[i].allele;
+		    }
+		    break;
+		    /*	    sigma /= 2;
+			    curcount = count ;
+			    if(sigma != sigma)
+			    sigma = 1.0;*/
 		}
 	    }
 	}	
@@ -224,10 +233,10 @@ class CMAES
 	    for(int i = 0 ; i < lambda ; i++)
 	    {
 		EvaluationResult[i] = evaluate(&offspring[i]);
-		
+
 		if(nfe >= 100000)
 		    return;
-		
+
 		if(EvaluationResult[i] < meanEvalResult  )
 		    successfulCount = successfulCount + 1;
 	    }
