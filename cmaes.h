@@ -146,7 +146,7 @@ class CMAES
 		for(int i = 0 ; i < mu ; i++)
 		    yw = yw + y[i] * weight[i];
 
-		update_mean(offspring);
+		update_mean();
 
 		update_pc();
 		update_ps();
@@ -254,9 +254,17 @@ class CMAES
 	    delete[] EvaluationResult;
 	}
 
-	void update_mean(Node *pop)
+	void update_mean(Node *offspring)
 	{
-	    mean.allele = calculateMean(pop , mu);
+		mean.isEvaluated = false;
+		mean.allele = calculateMean(offspring , parentsize);
+		mean.setFitness(evaluate(&mean));
+	}
+
+	void update_mean()
+	{
+	    mean.isEvaluated = false;
+	    mean.allele = mean.allele + sigma * yw;
 	    mean.setFitness(evaluate(&mean));	
 	}
 
