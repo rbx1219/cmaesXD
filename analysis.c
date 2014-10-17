@@ -32,10 +32,10 @@ int main()
 			error[j] = error[k];
 			error[k] = dtmp;
 		}
-//	printf("problem %d : \n" , i+1);
-    	printf("%e \n" , error[0]);
+	printf("problem %2d : " , i+1);
+    	printf("%e " , error[0]);
 //	printf(" 7th    %e \n" , error[6]);
-//	printf("%e \n" , error[12]);
+	printf("%e \n" , error[12]);
 //	printf(" 19th   %e \n" , error[18]);
 //	printf(" worst  %e \n" , error[24]);
 //	printf(" mean   %e \n" , mean);

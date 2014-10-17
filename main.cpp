@@ -25,6 +25,8 @@ int min_group = 999;
 
 
 Eigen::MatrixXd cov[num_groups];
+Eigen::VectorXd psigma[num_groups];
+Eigen::VectorXd pcov[num_groups];
 
 double BigSigma ;
 Eigen::MatrixXd BigCov;
@@ -71,7 +73,7 @@ void pull(GROUP *groups , int stage )
 
     /*2. CMAES in best UCB group*/
 
-    int UCBTimer = 30;
+    int UCBTimer = 50;
     Node *temp_pop = new Node[ groups[minX].nodes.size() ];
 
     list< Node >::iterator iter = groups[minX].nodes.begin();
@@ -81,7 +83,7 @@ void pull(GROUP *groups , int stage )
 
     //    CMAES es(groups[minX].nodes.size() , lambda , dimension , temp_pop , UCBTimer , sigma[minX] , cov[minX]);
     Node best = groups[minX].get_best_vector();	
-    CMAES es(1 , lambda , dimension , &best , UCBTimer , sigma[minX] , cov[minX]);	
+    CMAES es(1 , lambda , dimension , &best , UCBTimer , sigma[minX] , cov[minX], psigma[minX] , pcov[minX]);	
     es.run();
 
     Node temp_node(dimension);
@@ -100,6 +102,8 @@ void pull(GROUP *groups , int stage )
 	Criteria[minX] = 0;
     sigma[minX] = es.sigma;
     cov[minX] = es.covar;
+    psigma[minX] = es.ps;
+    pcov[minX] = es.pc;
     //    cout << minX << " : " << setprecision(13) << temp_node.fitness << endl;
     /*3. if stage == 0 replace the worst node with the new one*/
     if(stage == 0)
@@ -140,7 +144,8 @@ void updateGroups(GROUP *groups , CMAES * es)
 		break;
 	    }
     if(candidate == num_groups)
-	candidate = uni[uni[uni[0]]];
+	return;
+	//	candidate = uni[uni[uni[0]]];
     delete[] uni;
     /*end of 1*/	
     Node *temp_pop = new Node[ num_groups  ];
@@ -162,6 +167,8 @@ void updateGroups(GROUP *groups , CMAES * es)
 	int remain = groups[candidate].nodes.size() -1;
 	sigma[candidate] = 1.0;
 	cov[candidate].setIdentity(dimension , dimension);
+	psigma[candidate].setZero(dimension);
+	pcov[candidate].setZero(dimension);
 	groups[candidate].clear();
 	groups[candidate].push(temp_node , fe++);
 	//printf("from %d remain %d curNFE = %d\n" , candidate , remain,nfe);
@@ -265,22 +272,23 @@ int main(int argc , char **argv)
 	groups[i].gID = i;
 	sigma[i] = 1.0;
 	cov[i].setIdentity(dimension , dimension);
+	psigma[i].setZero(dimension);
+	pcov[i].setZero(dimension);
 	Criteria[i] = 0;
 	hill[i] = groups[i].get_best_vector();
     }
 
     CMAES outerES(num_groups , atoi(argv[2]) , dimension , hill , 1);
     double error;
-    /*while(!shouldTerminate(generation ++))
+    while(!shouldTerminate(generation ++))
       {
-      pull(groups , 0);
-      updateGroups(groups , &outerES);
+      	pull(groups , 0);
+        updateGroups(groups , &outerES);
       error = minFitness - best[funATT -1];
       }
       error = error > 0 ? error : 1e-15;
       printf("%e\n", error)	;
-      */
-    //pure CMAES
+/*    //pure CMAES
     Node bestNode = population[0];	
     CMAES es(1 , atoi(argv[2]) , dimension , &bestNode , 1);
     while(!shouldTerminate(generation++))
@@ -298,7 +306,7 @@ int main(int argc , char **argv)
 		cout << nfe << endl;
 		break;
 	}
-    }
+    }*/
     return 0;
 }
 

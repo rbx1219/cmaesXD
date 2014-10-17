@@ -56,16 +56,22 @@ class CMAES
 
 
 
-	CMAES(int parent , int child , int dim , Node *refPopulation , int terGen , double refsigma , Eigen::MatrixXd refcovar)
+	CMAES(int parent , int child , int dim , Node *refPopulation , int terGen , double refsigma , Eigen::MatrixXd refcovar,
+		Eigen::VectorXd refps, Eigen::VectorXd refpc)
 	{
 	    sigma = refsigma;
 	    covar = refcovar;
+	    ps = refps;
+	    pc = refpc;
 	    init(parent , child , dim , refPopulation , terGen);	
 	}
 	CMAES(int parent , int child , int dim , Node *refPopulation , int terGen)
 	{
 	    sigma = 1.0;
 	    covar.setIdentity(dim , dim);
+	    pc.setZero(dim);
+	    ps.setZero(dim);
+
 	    init(parent , child , dim , refPopulation , terGen);	
 	}
 	void init(int parent , int child , int dim , Node * refPopulation , int terGen)
@@ -107,8 +113,6 @@ class CMAES
 		container[i] = mean;
 	    testFunc = testFunctionFactory(funATT,dimension);
 	    initial();
-	    pc.setZero(dimension);
-	    ps.setZero(dimension);
 	    yw.setZero(dimension);
 	    if(terGen == -1)
 		terminate_generation = 100000 / lambda ;
@@ -148,6 +152,8 @@ class CMAES
 
 		update_mean();
 
+//		cout << pc << endl << endl;
+//		cout << ps << endl << endl;
 		update_pc();
 		update_ps();
 		update_covar(y);
