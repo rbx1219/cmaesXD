@@ -73,7 +73,7 @@ void pull(GROUP *groups , int stage )
 
     /*2. CMAES in best UCB group*/
 
-    int UCBTimer = 50;
+    int UCBTimer = 30;
     Node *temp_pop = new Node[ groups[minX].nodes.size() ];
 
     list< Node >::iterator iter = groups[minX].nodes.begin();
@@ -81,7 +81,6 @@ void pull(GROUP *groups , int stage )
 	temp_pop[i] = *iter;
 
 
-    //    CMAES es(groups[minX].nodes.size() , lambda , dimension , temp_pop , UCBTimer , sigma[minX] , cov[minX]);
     Node best = groups[minX].get_best_vector();	
     CMAES es(1 , lambda , dimension , &best , UCBTimer , sigma[minX] , cov[minX], psigma[minX] , pcov[minX]);	
     es.run();
@@ -93,7 +92,6 @@ void pull(GROUP *groups , int stage )
     if(temp_node.fitness < minFitness)
     {
 	minFitness = temp_node.fitness ;
-	//	printf("%.200lf in pull\n",temp_node.fitness);
 	min_group = minX;
     }
     if(best.fitness == temp_node.fitness)
@@ -104,14 +102,9 @@ void pull(GROUP *groups , int stage )
     cov[minX] = es.covar;
     psigma[minX] = es.ps;
     pcov[minX] = es.pc;
-    //    cout << minX << " : " << setprecision(13) << temp_node.fitness << endl;
     /*3. if stage == 0 replace the worst node with the new one*/
     if(stage == 0)
 	groups[minX].replace_worst(temp_node , fe++);
-    /*    if(stage == 1)
-	  {
-	  printf("in updating now choosing %d : size %d \n" , minX , groups[minX].nodes.size());
-	  }*/
     if(stage == 1)
 	groups[minX].push(temp_node , fe);
     /*end of 3*/	
@@ -171,7 +164,6 @@ void updateGroups(GROUP *groups , CMAES * es)
 	pcov[candidate].setZero(dimension);
 	groups[candidate].clear();
 	groups[candidate].push(temp_node , fe++);
-	//printf("from %d remain %d curNFE = %d\n" , candidate , remain,nfe);
 	for(int i = 0 ; i < remain ; i++)
 	    pull(groups , 1); //stage 1 doesn't erase Nodes
 	/*end of 3*/
@@ -264,7 +256,6 @@ int main(int argc , char **argv)
 
 
 
-
     //CMAES with UCB
     Node hill[num_groups];
     for(int i = 0 ; i < num_groups ; i++)
@@ -280,7 +271,7 @@ int main(int argc , char **argv)
 
     CMAES outerES(num_groups , atoi(argv[2]) , dimension , hill , 1);
     double error;
-    while(!shouldTerminate(generation ++))
+     while(!shouldTerminate(generation ++))
       {
       	pull(groups , 0);
         updateGroups(groups , &outerES);
@@ -288,25 +279,21 @@ int main(int argc , char **argv)
       }
       error = error > 0 ? error : 1e-15;
       printf("%e\n", error)	;
-/*    //pure CMAES
+      
+    /*
+      //pure CMAES
     Node bestNode = population[0];	
     CMAES es(1 , atoi(argv[2]) , dimension , &bestNode , 1);
     while(!shouldTerminate(generation++))
     {
-	//    CMAES es(PopSize , atoi(argv[2]) , dimension , population , -1);
 	es.run();
 	bestNode = es.generate();
 
-	//cout << bestNode.allele << endl;
-	printf("%e , %d\n" , bestNode.fitness - best[funATT-1] , nfe);
         error = bestNode.fitness - best[funATT-1];
 	error = error > 0 ? error : 1e-15;
-	if(error < accuracy[funATT-1])
-	{
-		cout << nfe << endl;
-		break;
-	}
-    }*/
+    }
+
+		cout <<error <<  endl;*/
     return 0;
 }
 

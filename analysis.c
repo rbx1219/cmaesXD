@@ -5,6 +5,8 @@
 int main()
 {
 	FILE * fin;
+	FILE *fout  = fopen("BestLog","w+");
+	FILE *fout2 = fopen("MedianLog","w+");
     for(int i = 0 ; i < 25 ; i++)
     {
 	int nfe[25];
@@ -13,7 +15,6 @@ int main()
 	double mean = 0.0;
 	sprintf(input , "%d.log" , i+1);
 	fin = fopen(input , "r");
-	
 	for(int j = 0 ; j < 25; j++)
 	{
 	    fscanf(fin,"%lf", &error[j]);
@@ -32,15 +33,20 @@ int main()
 			error[j] = error[k];
 			error[k] = dtmp;
 		}
-	printf("problem %2d : " , i+1);
+	printf("XD");
+	//printf("problem %2d : " , i+1);
     	printf("%e " , error[0]);
+	fprintf(fout,"%e\n",error[0]);
 //	printf(" 7th    %e \n" , error[6]);
 	printf("%e \n" , error[12]);
+	fprintf(fout2,"%e\n",error[12]);
 //	printf(" 19th   %e \n" , error[18]);
 //	printf(" worst  %e \n" , error[24]);
 //	printf(" mean   %e \n" , mean);
 //	printf("\n");
     }
     fclose(fin);
+    fclose(fout);
+    fclose(fout2);
 	return 0;
 }
