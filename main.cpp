@@ -202,6 +202,24 @@ int main(int argc , char **argv)
 	    population[i].allele(j) = rand.uniform(lowerbound , upperbound);
 	population[i].setFitness(groups[0].evaluate( population[i] , dimension) );    	
     }/*}}}*/
+
+    int *shuffle = new int[2 * PopSize];
+    rand.uniformArray(shuffle, PopSize, 0, PopSize-1);
+    rand.uniformArray(shuffle + PopSize, PopSize, 0, PopSize-1);
+    Node *offspring = new Node[PopSize];
+    for(int i = 0 ; i < PopSize; i++)
+    {
+    	if(population[2*i].fitness < population[2*i+1].fitness)
+	    offspring[i] = population[2*i];
+	else
+	    offspring[i] = population[2*i + 1];
+    }
+	
+    for(int i = 0 ; i < PopSize; i++)
+	population[i] = offspring[i];
+    delete[] offspring;
+    delete[] shuffle;	   
+    
     /*K-MEANS below*//*{{{*/
     int *uniarray = new int[PopSize];
     rand.uniformArray(uniarray , PopSize , 0 , PopSize-1);
