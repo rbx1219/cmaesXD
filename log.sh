@@ -12,5 +12,6 @@ do
     for j in {1..25}
     do
 	./cmaesXD $i 20 | tee -a $i.log 
+	sleep 3
     done
 done

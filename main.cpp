@@ -14,7 +14,7 @@
 double upperbound ;
 double lowerbound ;
 
-const int num_groups = 15;
+const int num_groups = 15 ;
 int fe = PopSize;
 int lambda;
 int NewGroupCount = 0;
@@ -22,7 +22,6 @@ double sigma[num_groups];
 double minFitness = 999999;
 int Criteria[num_groups];
 int min_group = 999;
-
 
 Eigen::MatrixXd cov[num_groups];
 Eigen::VectorXd psigma[num_groups];
@@ -131,14 +130,14 @@ void updateGroups(GROUP *groups , CMAES * es)
 	}
     if(candidate == num_groups)
 	for(int i = 0 ; i < num_groups ; i++)
-	    if(curFE - groups[uni[i]].LastModifiedFE > groups[uni[i]].nodes.size() ) 
+	    if(curFE - groups[uni[i]].LastModifiedFE > groups[uni[i]].nodes.size() *2 ) 
 	    {
 		candidate = uni[i];
 		break;
 	    }
     if(candidate == num_groups)
 	return;
-	//	candidate = uni[uni[uni[0]]];
+    //	candidate = uni[uni[uni[0]]];
     delete[] uni;
     /*end of 1*/	
     Node *temp_pop = new Node[ num_groups  ];
@@ -167,9 +166,8 @@ void updateGroups(GROUP *groups , CMAES * es)
 	for(int i = 0 ; i < remain ; i++)
 	    pull(groups , 1); //stage 1 doesn't erase Nodes
 	/*end of 3*/
-
-	delete[] temp_pop;
     }
+    delete[] temp_pop;
 }
 
 
@@ -178,7 +176,8 @@ int main(int argc , char **argv)
     //parameter declaration/*{{{*/
     Node *central = new Node[num_groups];
     Node *population = new Node[PopSize];
-
+    double node1000, node10000;
+    bool flag1000 = false, flag10000 = false;
     MyRand rand;
 
     GROUP groups[num_groups];
@@ -253,47 +252,86 @@ int main(int argc , char **argv)
 
     /*}}}*/
     CMAES::a.rng.seed(time(NULL));	
-
-
-
+/*
     //CMAES with UCB
     Node hill[num_groups];
-    for(int i = 0 ; i < num_groups ; i++)
-    {
-	groups[i].gID = i;
-	sigma[i] = 1.0;
-	cov[i].setIdentity(dimension , dimension);
-	psigma[i].setZero(dimension);
-	pcov[i].setZero(dimension);
-	Criteria[i] = 0;
-	hill[i] = groups[i].get_best_vector();
-    }
+           for(int i = 0 ; i < num_groups ; i++)
+	     {
+	     groups[i].gID = i;
+	     sigma[i] = 1.0;
+	     cov[i].setIdentity(dimension , dimension);
+	     psigma[i].setZero(dimension);
+	     pcov[i].setZero(dimension);
+	     Criteria[i] = 0;
+	     hill[i] = groups[i].get_best_vector();
+	     }
 
-    CMAES outerES(num_groups , atoi(argv[2]) , dimension , hill , 1);
-    double error;
-     while(!shouldTerminate(generation ++))
-      {
-      	pull(groups , 0);
-        updateGroups(groups , &outerES);
-      error = minFitness - best[funATT -1];
-      }
-      error = error > 0 ? error : 1e-15;
-      printf("%e\n", error)	;
-      
-    /*
-      //pure CMAES
+	     CMAES outerES(num_groups , atoi(argv[2]) , dimension , hill , 1);
+	     double error;
+	     while(!shouldTerminate(generation ++))
+	     {
+	     pull(groups , 0);
+	     updateGroups(groups , &outerES);
+	     error = minFitness - best[funATT -1];
+	     if(nfe >=1000 && !flag1000)
+	     flag1000 = true, node1000 = error;
+	     if(nfe >= 10000 && !flag10000)
+	     flag10000 = true, node10000 = error;
+	     }
+
+		
+	     error = error > 0 ? error : 1e-15;
+//	     printf("%e %e %e\n", node1000,node10000,error)	;
+*/
+    //pure CMAES
     Node bestNode = population[0];	
+    double error = 99999999;
     CMAES es(1 , atoi(argv[2]) , dimension , &bestNode , 1);
     while(!shouldTerminate(generation++))
     {
 	es.run();
 	bestNode = es.generate();
 
-        error = bestNode.fitness - best[funATT-1];
+	if(error >bestNode.fitness - best[funATT-1])
+	    error = bestNode.fitness - best[funATT-1];
+	if(nfe >=1000 && !flag1000)
+	    flag1000 = true, node1000 = error;
+	if(nfe >= 10000 && !flag10000)
+	    flag10000 = true, node10000 = error;
 	error = error > 0 ? error : 1e-15;
     }
 
-		cout <<error <<  endl;*/
-    return 0;
+    //printf("%e %e %e\n",node1000,node10000,error);
+    /*
+	//2-layer
+	for(int i = 0 ; i < num_groups ; i++)
+	{
+	Node *temp_pop = new Node[groups[i].nodes.size()];
+	list< Node >::iterator iter = groups[i].nodes.begin();
+	for(int j = 0 ; j < groups[i].nodes.size() ; j++ , iter++)
+	temp_pop[j] = *iter;
+
+
+	CMAES es(groups[i].nodes.size(),atoi(argv[2]) , dimension, temp_pop, 1000);
+	es.run();
+	hill[i] = es.generate();
+	delete[] temp_pop;
+	}
+	double minXD = hill[0].fitness;
+	for(int i = 1 ; i < num_groups ; i++)
+	if(hill[i].fitness < minXD)
+	minXD = hill[i].fitness;
+	minXD = minXD - best[funATT-1];
+	minXD = minXD > 0 ? minXD : 1e-15;
+	printf("%e ",minXD)	;
+	CMAES XD(num_groups,atoi(argv[2]) ,dimension , hill, -1);
+	XD.run();
+	cout << nfe << endl;
+	double    error = XD.generate().fitness - best[funATT-1];
+	error = error > 0 ? error : 1e-15;
+	if(minXD > error)
+	minXD = error;
+	printf("%e \n",minXD);*/
+	return 0;
 }
 

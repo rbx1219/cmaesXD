@@ -28,7 +28,8 @@ double GROUP::calculateUCB(int total)
 	newMean = 1.0;
     else
 	newMean = (getMean() - min ) / (max - min);
-    double tmp = newMean - sqrt(log(total) / AllUsedNumber *V);
+   // double tmp = newMean - sqrt(log(total) / AllUsedNumber *V);
+    double tmp = min / 100000 - sqrt(log(total) / AllUsedNumber *V);
     return tmp;
 }
 

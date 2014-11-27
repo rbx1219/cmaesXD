@@ -105,7 +105,6 @@ class CMAES
 	    mean.length = dimension;
 	    mean.allele.setZero();
 	    mean.allele = calculateMean(population , parent);
-	    //bestNode = findingbest();
 	    bestNode.length = dimension;
 	    bestNode.allele.setZero(dimension);
 	    bestNode= refPopulation[0];
@@ -152,15 +151,15 @@ class CMAES
 
 		update_mean();
 
-//		cout << pc << endl << endl;
-//		cout << ps << endl << endl;
+		//		cout << pc << endl << endl;
+		//		cout << ps << endl << endl;
 		update_pc();
 		update_ps();
 		update_covar(y);
 		update_sigma();
 		//cout << covar <<  endl << endl << "================ " << sigma << endl;
 		//		printf("cc : %lf cs : %lf cmu : %lf c1 : %lf ds : %lf\n" , cc , cs, cmu , c1 , ds);
-		bestNode = offspring[0];
+		bestNode = evaluate(&bestNode) < evaluate(&offspring[0]) ? bestNode : offspring[0];
 		generation ++ ;
 		if( generation >= terminate_generation)
 		{
@@ -187,6 +186,8 @@ class CMAES
 	    double result = testFunc->f(tmp , dimension);
 	    candidate->setFitness(result);
 	    nfe++;
+	    if(result - best[funATT-1] < 1e-8 && !solved)
+		cout << nfe << endl , solved = true;
 	    return result;
 	}
 
@@ -262,9 +263,9 @@ class CMAES
 
 	void update_mean(Node *offspring)
 	{
-		mean.isEvaluated = false;
-		mean.allele = calculateMean(offspring , parentsize);
-		mean.setFitness(evaluate(&mean));
+	    mean.isEvaluated = false;
+	    mean.allele = calculateMean(offspring , parentsize);
+	    mean.setFitness(evaluate(&mean));
 	}
 
 	void update_mean()

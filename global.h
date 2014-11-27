@@ -4,6 +4,7 @@
 
 int nfe = 0;
 int funATT;
+bool solved = false;
 double best[25] = {
           -450.0 
         , -450.0 
